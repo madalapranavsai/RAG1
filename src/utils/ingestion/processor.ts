@@ -2,6 +2,20 @@ import { createAdminClient } from "@/utils/supabase/admin";
 import { chunkText } from "./chunker";
 import { PDFParse } from "pdf-parse";
 import { generateEmbeddings } from "@/utils/embeddings";
+import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
+import path from "path";
+
+// Override GlobalWorkerOptions.workerSrc to point to the absolute path in node_modules.
+// This prevents Next.js SSR bundling environment from throwing Module Not Found on the worker.
+const workerPath = path.join(
+  process.cwd(),
+  "node_modules",
+  "pdfjs-dist",
+  "legacy",
+  "build",
+  "pdf.worker.mjs"
+);
+pdfjs.GlobalWorkerOptions.workerSrc = workerPath;
 
 /**
  * Downloads a document from storage, extracts its text content, chunks it,
