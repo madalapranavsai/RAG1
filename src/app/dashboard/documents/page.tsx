@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import UploadDropzone from "@/components/UploadDropzone";
 import DeleteButton from "./DeleteButton";
+import RetrievalSandbox from "@/components/RetrievalSandbox";
 
 export default async function DocumentsPage() {
   const supabase = await createClient();
@@ -159,6 +160,11 @@ export default async function DocumentsPage() {
             <UploadDropzone />
           </div>
         </div>
+      </div>
+
+      {/* Vector Retrieval Sandbox */}
+      <div className="mt-8 border-t border-border-custom pt-8">
+        <RetrievalSandbox />
       </div>
     </div>
   );
