@@ -16,6 +16,7 @@ const workerPath = path.join(
   "pdf.worker.mjs"
 );
 pdfjs.GlobalWorkerOptions.workerSrc = workerPath;
+PDFParse.setWorker(workerPath);
 
 /**
  * Downloads a document from storage, extracts its text content, chunks it,
