@@ -4,11 +4,12 @@ import { PDFParse } from "pdf-parse";
 import { generateEmbeddings } from "@/utils/embeddings";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import path from "path";
+import fs from "fs";
 
 // Override GlobalWorkerOptions.workerSrc to point to the absolute path in node_modules.
 // This prevents Next.js SSR bundling environment from throwing Module Not Found on the worker.
 const workerPath = path.join(
-  process.cwd(),
+  /*turbopackIgnore: true*/ process.cwd(),
   "node_modules",
   "pdfjs-dist",
   "legacy",
@@ -17,6 +18,40 @@ const workerPath = path.join(
 );
 pdfjs.GlobalWorkerOptions.workerSrc = workerPath;
 PDFParse.setWorker(workerPath);
+
+// Dynamically copy pdf.worker.mjs to Next.js server chunk directories to resolve fallback fake worker dynamic imports.
+function ensureWorkerFile() {
+  const source = path.join(
+    /*turbopackIgnore: true*/ process.cwd(),
+    "node_modules",
+    "pdfjs-dist",
+    "legacy",
+    "build",
+    "pdf.worker.mjs"
+  );
+
+  const targets = [
+    path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "dev", "server", "chunks", "ssr", "pdf.worker.mjs"),
+    path.join(/*turbopackIgnore: true*/ process.cwd(), ".next", "server", "chunks", "pdf.worker.mjs"),
+  ];
+
+  targets.forEach((target) => {
+    try {
+      const dir = path.dirname(target);
+      if (fs.existsSync(dir)) {
+        if (!fs.existsSync(target)) {
+          fs.copyFileSync(source, target);
+          console.log(`[Ingestion] Copied pdf.worker.mjs to ${target}`);
+        }
+      }
+    } catch (e) {
+      console.error(`[Ingestion] Failed to copy pdf.worker.mjs to ${target}:`, e);
+    }
+  });
+}
+
+// Execute worker verification
+ensureWorkerFile();
 
 /**
  * Downloads a document from storage, extracts its text content, chunks it,
