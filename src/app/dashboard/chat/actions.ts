@@ -106,6 +106,7 @@ export async function sendChatMessage(chatId: string, content: string) {
     // 4. Save User Message to Database
     const { error: userMsgError } = await supabase.from("chat_messages").insert({
       chat_id: chatId,
+      workspace_id: activeWorkspaceId,
       role: "user",
       content: trimmedMessage,
     });
@@ -166,6 +167,11 @@ If the context does not contain relevant information to answer, state that you d
 
 Workspace Document Context:
 ${contextBlock || "No relevant documents found in workspace."}
+
+At the very end of your response, on a new line, add exactly two concise suggested follow-up questions that the user might want to ask next based on this conversation. Format it exactly as:
+Follow-up Questions:
+1. [First Question]
+2. [Second Question]
 `,
     };
 
@@ -179,10 +185,13 @@ ${contextBlock || "No relevant documents found in workspace."}
     const completion = await generateChatCompletion(completionMessages);
 
     // 11. Write Assistant Reply to Database
+    const chunkIds = matches ? matches.map((m: any) => m.id) : [];
     const { error: assistantMsgError } = await supabase.from("chat_messages").insert({
       chat_id: chatId,
+      workspace_id: activeWorkspaceId,
       role: "assistant",
       content: completion.content,
+      retrieved_chunk_ids: chunkIds,
     });
 
     if (assistantMsgError) throw new Error(`Failed to save AI reply: ${assistantMsgError.message}`);

@@ -15,6 +15,7 @@ interface Message {
   id: string;
   role: "user" | "assistant" | "system";
   content: string;
+  retrieved_chunk_ids?: string[] | null;
   created_at: string;
 }
 
@@ -60,10 +61,12 @@ export default async function ChatPage({
 
   // 5. Fetch message thread history if activeChatId is valid
   let activeMessages: Message[] = [];
+  let citations: Record<string, { content: string; docTitle: string }> = {};
+
   if (activeChatId) {
     const { data: messages } = await supabase
       .from("chat_messages")
-      .select("id, role, content, created_at")
+      .select("id, role, content, retrieved_chunk_ids, created_at")
       .eq("chat_id", activeChatId)
       .order("created_at", { ascending: true });
 
@@ -71,8 +74,28 @@ export default async function ChatPage({
       id: m.id,
       role: m.role,
       content: m.content,
+      retrieved_chunk_ids: m.retrieved_chunk_ids,
       created_at: m.created_at,
     }));
+
+    // Resolve citations in a single batch query
+    const chunkIds = Array.from(
+      new Set(activeMessages.flatMap((m) => m.retrieved_chunk_ids || []))
+    );
+
+    if (chunkIds.length > 0) {
+      const { data: chunks } = await supabase
+        .from("document_chunks")
+        .select("id, content, documents (title)")
+        .in("id", chunkIds);
+
+      chunks?.forEach((c: any) => {
+        citations[c.id] = {
+          content: c.content,
+          docTitle: c.documents?.title || "Unknown Document",
+        };
+      });
+    }
   }
 
   return (
@@ -136,6 +159,7 @@ export default async function ChatPage({
             <ChatInterface
               chatId={activeChatId}
               initialMessages={activeMessages}
+              citations={citations}
             />
           ) : (
             <div className="flex flex-col items-center justify-center text-center p-12 h-[600px] border border-dashed border-border-custom bg-surface rounded-xl text-muted-text">
