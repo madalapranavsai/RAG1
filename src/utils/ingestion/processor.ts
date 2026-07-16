@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/utils/supabase/admin";
 import { chunkText } from "./chunker";
 import { PDFParse } from "pdf-parse";
+import { generateEmbeddings } from "@/utils/embeddings";
 
 /**
  * Downloads a document from storage, extracts its text content, chunks it,
@@ -80,12 +81,17 @@ export async function processDocument(documentId: string) {
       throw new Error("Text chunking resulted in 0 segments.");
     }
 
-    // 6. Bulk insert chunks into the database (embeddings initialized as null)
-    const chunkRows = chunks.map((chunk) => ({
+    // Generate embeddings for each text chunk
+    const chunkContents = chunks.map((c) => c.content);
+    const embeddings = await generateEmbeddings(chunkContents);
+
+    // 6. Bulk insert chunks into the database (attaching the vector arrays)
+    const chunkRows = chunks.map((chunk, idx) => ({
       workspace_id: document.workspace_id,
       document_id: document.id,
       chunk_index: chunk.chunkIndex,
       content: chunk.content,
+      embedding: embeddings[idx],
     }));
 
     const { error: insertError } = await supabase
@@ -106,13 +112,21 @@ export async function processDocument(documentId: string) {
       throw new Error(`Failed to update status to ready: ${readyError.message}`);
     }
 
-    // 8. Track usage metrics (chunks created)
-    await supabase.from("usage_events").insert({
-      workspace_id: document.workspace_id,
-      event_type: "chunk_created",
-      quantity: chunks.length,
-      metadata: { document_id: documentId },
-    });
+    // 8. Track usage metrics (chunks created and embeddings generated)
+    await supabase.from("usage_events").insert([
+      {
+        workspace_id: document.workspace_id,
+        event_type: "chunk_created",
+        quantity: chunks.length,
+        metadata: { document_id: documentId },
+      },
+      {
+        workspace_id: document.workspace_id,
+        event_type: "embedding_generated",
+        quantity: chunks.length,
+        metadata: { document_id: documentId },
+      },
+    ]);
 
   } catch (err: any) {
     console.error(`Error processing document ${documentId}:`, err);
