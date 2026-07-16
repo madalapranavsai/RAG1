@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
+import { processDocument } from "@/utils/ingestion/processor";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 const ALLOWED_MIME_TYPES = [
@@ -97,6 +98,11 @@ export async function uploadDocument(prevState: any, formData: FormData) {
       event_type: "document_uploaded",
       quantity: 1,
       metadata: { filename: file.name, size: file.size },
+    });
+
+    // 8. Trigger background ingestion pipeline (non-blocking)
+    processDocument(documentId).catch((err) => {
+      console.error(`Error in background document processing:`, err);
     });
 
     revalidatePath("/dashboard/documents");
