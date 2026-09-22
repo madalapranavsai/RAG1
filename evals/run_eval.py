@@ -26,7 +26,7 @@ from app.services.evaluator import (
 )
 
 REPORTS_DIR = Path(__file__).resolve().parent / "reports"
-DEFAULT_DATASET = Path(__file__).resolve().parent / "golden_dataset.json"
+DEFAULT_DATASET = Path(__file__).resolve().parent / "benchmark_dataset.json"
 
 
 async def evaluate_single_sample(item: Dict[str, Any]) -> Dict[str, Any]:

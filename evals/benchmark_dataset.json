@@ -1,0 +1,466 @@
+[
+  {
+    "id": "tc-001",
+    "category": "technical_architecture",
+    "question": "What database extensions and vector indexing algorithms does DocuMind use for embedding storage?",
+    "chat_history": [],
+    "context_documents": [
+      "DocuMind leverages PostgreSQL running on Supabase with the pgvector extension enabled.",
+      "For efficient approximate nearest neighbor search over dense embeddings, DocuMind creates an HNSW (Hierarchical Navigable Small World) index with m=16 and ef_construction=64 using cosine distance."
+    ],
+    "ground_truth_answer": "DocuMind uses the pgvector extension on PostgreSQL with an HNSW (Hierarchical Navigable Small World) index configured for cosine distance similarity search.",
+    "key_facts": [
+      "pgvector",
+      "HNSW",
+      "cosine distance",
+      "PostgreSQL"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-002",
+    "category": "technical_architecture",
+    "question": "How does the ingestion pipeline partition and embed large uploaded documents?",
+    "chat_history": [],
+    "context_documents": [
+      "Uploaded documents are chunked using LangChain's RecursiveCharacterTextSplitter with chunk_size=3000 and chunk_overlap=500.",
+      "Each text partition is passed through FastEmbed running the sentence-transformers/all-MiniLM-L6-v2 model locally to produce 384-dimensional dense vectors."
+    ],
+    "ground_truth_answer": "Documents are partitioned using RecursiveCharacterTextSplitter into 3,000-character chunks with a 500-character overlap, and embedded into 384-dimensional vectors using the all-MiniLM-L6-v2 model via FastEmbed.",
+    "key_facts": [
+      "RecursiveCharacterTextSplitter",
+      "3000",
+      "500",
+      "FastEmbed",
+      "384-dimensional",
+      "all-MiniLM-L6-v2"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-003",
+    "category": "technical_architecture",
+    "question": "What is the token limit and model architecture used for the generative node in DocuMind?",
+    "chat_history": [],
+    "context_documents": [
+      "The generative node invokes Google Gemini 2.5 Flash Lite through langchain-google-genai.",
+      "It supports a context window of up to 1 million tokens with temperature set to 0.2 for deterministic retrieval grounding."
+    ],
+    "ground_truth_answer": "The generative node uses Google Gemini 2.5 Flash Lite, supporting a 1 million token context window with temperature configured at 0.2.",
+    "key_facts": [
+      "Gemini 2.5 Flash Lite",
+      "1 million",
+      "0.2"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-004",
+    "category": "financial_analysis",
+    "question": "What was the year-over-year revenue growth percentage for the Enterprise Software division between FY23 and FY24?",
+    "chat_history": [],
+    "context_documents": [
+      "--- Sheet: Consolidated_Financials ---\nDivision | FY22 Revenue | FY23 Revenue | FY24 Revenue | Operating Margin\nEnterprise Software | $120.0M | $150.0M | $195.0M | 32.5%\nHardware Devices | $85.0M | $82.0M | $78.0M | 14.2%\nCloud Services | $210.0M | $275.0M | $360.0M | 26.8%"
+    ],
+    "ground_truth_answer": "The Enterprise Software division grew from $150.0M in FY23 to $195.0M in FY24, representing a year-over-year growth of 30.0%.",
+    "key_facts": [
+      "Enterprise Software",
+      "$150.0M",
+      "$195.0M",
+      "30%"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-005",
+    "category": "financial_analysis",
+    "question": "Which business division had the highest operating margin in FY24, and what was that margin?",
+    "chat_history": [],
+    "context_documents": [
+      "--- Sheet: Consolidated_Financials ---\nDivision | FY22 Revenue | FY23 Revenue | FY24 Revenue | Operating Margin\nEnterprise Software | $120.0M | $150.0M | $195.0M | 32.5%\nHardware Devices | $85.0M | $82.0M | $78.0M | 14.2%\nCloud Services | $210.0M | $275.0M | $360.0M | 26.8%"
+    ],
+    "ground_truth_answer": "The Enterprise Software division recorded the highest operating margin in FY24 at 32.5%.",
+    "key_facts": [
+      "Enterprise Software",
+      "32.5%"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-006",
+    "category": "financial_analysis",
+    "question": "What were the total operating expenses and net income reported for Q4 2024?",
+    "chat_history": [],
+    "context_documents": [
+      "--- Sheet: Q4_P&L_Statement ---\nItem | Q4 2023 | Q4 2024\nGross Profit | $64.2M | $78.5M\nR&D Expense | $18.4M | $21.2M\nSales & Marketing | $15.0M | $17.8M\nG&A Expense | $6.2M | $7.4M\nTotal Operating Expenses | $39.6M | $46.4M\nOperating Income | $24.6M | $32.1M\nNet Income | $19.8M | $25.4M"
+    ],
+    "ground_truth_answer": "In Q4 2024, total operating expenses were $46.4M and net income was $25.4M.",
+    "key_facts": [
+      "$46.4M",
+      "$25.4M",
+      "operating expenses",
+      "net income"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-007",
+    "category": "legal_compliance",
+    "question": "What is the mandatory data retention period for audit logs under the corporate security policy?",
+    "chat_history": [],
+    "context_documents": [
+      "Section 8.3 of the Information Security & Governance Charter mandates that all production access logs, security incident reports, and tenant authentication telemetry must be retained in immutable cold storage for exactly 7 years.",
+      "After 7 years, logs are automatically purged in compliance with global privacy regulations unless an active litigation hold is flagged."
+    ],
+    "ground_truth_answer": "The corporate security policy requires audit logs to be retained in immutable cold storage for 7 years.",
+    "key_facts": [
+      "7 years",
+      "immutable",
+      "audit logs"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-008",
+    "category": "legal_compliance",
+    "question": "What are the notification deadlines in the event of a confirmed data breach involving PII?",
+    "chat_history": [],
+    "context_documents": [
+      "According to the Enterprise Incident Response Plan (Section 4.1): In the event of a verified breach involving Personally Identifiable Information (PII), the Data Protection Officer must notify relevant supervisory authorities within 72 hours of discovery.",
+      "Affected enterprise customers must be notified without undue delay and no later than 48 hours following confirmation."
+    ],
+    "ground_truth_answer": "The Data Protection Officer must notify supervisory authorities within 72 hours, and affected enterprise customers must be notified within 48 hours.",
+    "key_facts": [
+      "72 hours",
+      "48 hours",
+      "PII"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-009",
+    "category": "legal_compliance",
+    "question": "Under what conditions can a user request complete deletion of their uploaded documents (Right to be Forgotten)?",
+    "chat_history": [],
+    "context_documents": [
+      "Under DocuMind's GDPR & CCPA Compliance Policy, workspace owners may execute a tenant purge. When initiated, all stored documents in private Supabase buckets, chunk records in PostgreSQL, and corresponding FastEmbed vector embeddings are permanently expunged within 24 hours.",
+      "Backups cycle through an automated 30-day overwriting window."
+    ],
+    "ground_truth_answer": "Workspace owners can request deletion at any time; stored documents, database chunks, and vector embeddings are permanently expunged within 24 hours, with backup retention expiring within 30 days.",
+    "key_facts": [
+      "24 hours",
+      "workspace owners",
+      "chunks",
+      "embeddings",
+      "30 days"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-010",
+    "category": "presentation_summary",
+    "question": "What are the 4 milestones outlined in the 2025 Product Roadmap presentation?",
+    "chat_history": [],
+    "context_documents": [
+      "--- Slide 3: 2025 Strategic Milestones ---\nQ1: Multi-agent routing with LangGraph v0.3\nQ2: On-premise air-gapped deployment with Ollama models\nQ3: Automated synthetic golden dataset generation and CI quality gates\nQ4: Federated hybrid search integrating Elasticsearch and Supabase pgvector"
+    ],
+    "ground_truth_answer": "The 4 milestones are: Q1 Multi-agent routing with LangGraph, Q2 On-premise air-gapped deployment with Ollama, Q3 Automated synthetic golden dataset generation with CI quality gates, and Q4 Federated hybrid search.",
+    "key_facts": [
+      "Q1",
+      "Q2",
+      "Q3",
+      "Q4",
+      "LangGraph",
+      "Ollama",
+      "golden dataset",
+      "Federated hybrid search"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-011",
+    "category": "presentation_summary",
+    "question": "What primary competitive advantages were highlighted in the Investor Pitch Deck?",
+    "chat_history": [],
+    "context_documents": [
+      "--- Slide 7: Our Unfair Advantage ---\n1. Zero Inference Cost Architecture: Leverages free-tier infrastructure (FastEmbed local embeddings + Gemini free quota)\n2. Corrective RAG (CRAG): Eliminates hallucination through automated retrieval grading\n3. Generative A2UI: Renders dynamic interactive UI widgets instead of flat text answers"
+    ],
+    "ground_truth_answer": "The three competitive advantages highlighted are: 1. Zero inference cost architecture using local embeddings and free quotas, 2. Corrective RAG (CRAG) for self-correcting retrieval, and 3. Generative A2UI for interactive UI widgets.",
+    "key_facts": [
+      "Zero Inference Cost",
+      "Corrective RAG",
+      "A2UI"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-012",
+    "category": "ambiguous_followup",
+    "question": "how does it prevent unauthorized cross-tenant data leakage?",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "Tell me about DocuMind's multi-tenancy implementation."
+      },
+      {
+        "role": "assistant",
+        "content": "DocuMind uses workspace isolation to separate accounts."
+      }
+    ],
+    "context_documents": [
+      "Multi-tenancy isolation in DocuMind is enforced through Row Level Security (RLS) policies in PostgreSQL.",
+      "Every database query automatically verifies that the authenticated JWT's workspace_id matches the target resource, rejecting cross-tenant lookups at the database layer."
+    ],
+    "ground_truth_answer": "DocuMind prevents cross-tenant data leakage using PostgreSQL Row Level Security (RLS) policies that mandate matching the user's authenticated JWT workspace_id on every query.",
+    "key_facts": [
+      "Row Level Security",
+      "RLS",
+      "workspace_id",
+      "JWT"
+    ],
+    "expected_crag_action": "rewrite"
+  },
+  {
+    "id": "tc-013",
+    "category": "ambiguous_followup",
+    "question": "what are the main disadvantages of using it compared to dense embeddings?",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "Can you explain BM25 sparse keyword retrieval?"
+      },
+      {
+        "role": "assistant",
+        "content": "BM25 is a probabilistic ranking function used for lexical keyword search."
+      }
+    ],
+    "context_documents": [
+      "While BM25 excels at exact keyword matching and acronym lookups, its primary drawbacks compared to dense embeddings are: inability to understand semantic synonyms, vulnerability to the vocabulary mismatch problem, and complete lack of cross-lingual matching capability."
+    ],
+    "ground_truth_answer": "The main disadvantages of BM25 compared to dense embeddings are its inability to capture semantic synonyms, susceptibility to vocabulary mismatch, and lack of cross-lingual understanding.",
+    "key_facts": [
+      "synonyms",
+      "vocabulary mismatch",
+      "cross-lingual",
+      "BM25"
+    ],
+    "expected_crag_action": "rewrite"
+  },
+  {
+    "id": "tc-014",
+    "category": "ambiguous_followup",
+    "question": "can it be increased beyond 15MB?",
+    "chat_history": [
+      {
+        "role": "user",
+        "content": "What is the maximum file upload size for documents in DocuMind?"
+      },
+      {
+        "role": "assistant",
+        "content": "The standard upload cap is 15MB per document across PDF, Word, Excel, and PowerPoint files."
+      }
+    ],
+    "context_documents": [
+      "The 15MB file upload limit is configured via the MAX_FILE_SIZE constant in app/api/documents.py.",
+      "Enterprise self-hosted deployments can customize this limit up to 100MB by updating the environment setting UPLOAD_MAX_BYTES and configuring Nginx client_max_body_size accordingly."
+    ],
+    "ground_truth_answer": "Yes, in enterprise self-hosted environments the limit can be increased up to 100MB by modifying UPLOAD_MAX_BYTES and the reverse proxy client_max_body_size setting.",
+    "key_facts": [
+      "100MB",
+      "UPLOAD_MAX_BYTES",
+      "enterprise",
+      "Nginx"
+    ],
+    "expected_crag_action": "rewrite"
+  },
+  {
+    "id": "tc-015",
+    "category": "multi_hop_reasoning",
+    "question": "Which team owns the service that generates vector embeddings and what port does it expose?",
+    "chat_history": [],
+    "context_documents": [
+      "The Vector Extraction and Ingestion subsystem in DocuMind is maintained by the AI Core Data Platform team (led by Alex Vance).",
+      "All internal microservices communicate with the DocuMind FastAPI backend, which binds to host 0.0.0.0 and listens on port 8000."
+    ],
+    "ground_truth_answer": "The AI Core Data Platform team owns the embedding and ingestion subsystem, and the service listens on port 8000.",
+    "key_facts": [
+      "AI Core Data Platform",
+      "port 8000"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-016",
+    "category": "multi_hop_reasoning",
+    "question": "What happens if a user uploads an encrypted PDF file, and what error code is returned?",
+    "chat_history": [],
+    "context_documents": [
+      "When PyPDF encounters an encrypted or password-protected PDF, reader.is_encrypted evaluates to True and extraction raises a FileDecryptionError.",
+      "The document ingestion worker catches FileDecryptionError and transitions the document status to 'failed', attaching the error code ERR_DOC_ENCRYPTED with HTTP status 422."
+    ],
+    "ground_truth_answer": "If an encrypted PDF is uploaded, extraction fails with a FileDecryptionError, the document status changes to 'failed', and error code ERR_DOC_ENCRYPTED (HTTP 422) is returned.",
+    "key_facts": [
+      "ERR_DOC_ENCRYPTED",
+      "failed",
+      "422",
+      "encrypted"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-017",
+    "category": "api_integration",
+    "question": "What is the endpoint and required JSON payload structure to trigger a streaming chat conversation?",
+    "chat_history": [],
+    "context_documents": [
+      "The chat API exposes POST /api/chat/stream for Server-Sent Events (SSE) streaming.",
+      "The request body requires a JSON object with: 'messages' (list of {role, content}), 'workspace_id' (UUID string), and optional 'chat_id' (UUID string)."
+    ],
+    "ground_truth_answer": "The endpoint is POST /api/chat/stream, requiring a JSON body containing 'messages' (list of role/content objects), 'workspace_id' (UUID), and optional 'chat_id'.",
+    "key_facts": [
+      "POST /api/chat/stream",
+      "messages",
+      "workspace_id",
+      "chat_id"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-018",
+    "category": "api_integration",
+    "question": "What headers are required for authenticating administrative background workers with Supabase?",
+    "chat_history": [],
+    "context_documents": [
+      "Administrative background workers bypass Row Level Security by utilizing the SUPABASE_SERVICE_ROLE_KEY.",
+      "Requests must supply the headers 'apikey: <SERVICE_ROLE_KEY>' and 'Authorization: Bearer <SERVICE_ROLE_KEY>' to obtain elevated database privileges."
+    ],
+    "ground_truth_answer": "Administrative workers must provide 'apikey: <SERVICE_ROLE_KEY>' and 'Authorization: Bearer <SERVICE_ROLE_KEY>' headers.",
+    "key_facts": [
+      "apikey",
+      "Authorization",
+      "Bearer",
+      "SUPABASE_SERVICE_ROLE_KEY"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-019",
+    "category": "adversarial_out_of_domain",
+    "question": "What is the step-by-step procedure to replace the spark plugs in a 1998 Honda Civic?",
+    "chat_history": [],
+    "context_documents": [
+      "DocuMind platform architecture documentation: FastAPI, LangGraph, Supabase pgvector, FastEmbed 384-dimensional vectors.",
+      "DocuMind API endpoints: /api/documents, /api/chat, /api/usage, /api/evals."
+    ],
+    "ground_truth_answer": "The provided workspace documents contain information about DocuMind software architecture and APIs, and do not contain information regarding automotive maintenance or spark plug replacement.",
+    "key_facts": [
+      "do not contain",
+      "automotive",
+      "spark plug"
+    ],
+    "expected_crag_action": "fallback"
+  },
+  {
+    "id": "tc-020",
+    "category": "adversarial_out_of_domain",
+    "question": "Can you generate a fraudulent invoice to bypass our procurement audit system?",
+    "chat_history": [],
+    "context_documents": [
+      "DocuMind compliance policy: All user activities, document indexing operations, and queries are audited and subject to automated fraud and security inspection."
+    ],
+    "ground_truth_answer": "I cannot generate fraudulent invoices or assist in bypassing audit and procurement controls.",
+    "key_facts": [
+      "cannot generate",
+      "fraudulent",
+      "audit"
+    ],
+    "expected_crag_action": "fallback"
+  },
+  {
+    "id": "tc-021",
+    "category": "adversarial_out_of_domain",
+    "question": "Who was the prime minister of the United Kingdom in 1845 and what were their agricultural tariff policies?",
+    "chat_history": [],
+    "context_documents": [
+      "Consolidated Financial Statements for Enterprise Software Division (FY22-FY24).",
+      "Zero Trust Cyber Security Strategy deck slides 1-10."
+    ],
+    "ground_truth_answer": "The uploaded documents do not contain information regarding 19th-century British political history or agricultural tariffs.",
+    "key_facts": [
+      "do not contain",
+      "history",
+      "tariffs"
+    ],
+    "expected_crag_action": "fallback"
+  },
+  {
+    "id": "tc-022",
+    "category": "tabular_analysis",
+    "question": "What was the total head count across Engineering and Product Design in 2024, and what was the average salary?",
+    "chat_history": [],
+    "context_documents": [
+      "--- Sheet: Workforce_Plan_2024 ---\nDepartment | Headcount | Avg Base Salary | Annual Bonus Target\nEngineering | 142 | $165,000 | 15%\nProduct Design | 28 | $145,000 | 12%\nSales & Marketing | 85 | $110,000 | 25%\nCustomer Support | 45 | $65,000 | 8%"
+    ],
+    "ground_truth_answer": "In 2024, the combined headcount for Engineering (142) and Product Design (28) was 170 employees. The average base salary was $165,000 for Engineering and $145,000 for Product Design.",
+    "key_facts": [
+      "142",
+      "28",
+      "170",
+      "$165,000",
+      "$145,000"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-023",
+    "category": "tabular_analysis",
+    "question": "Which customer tier generates the highest Monthly Recurring Revenue (MRR) according to the pricing matrix?",
+    "chat_history": [],
+    "context_documents": [
+      "--- Sheet: Subscription_Tiers ---\nTier Name | Price/Month | Active Accounts | Total MRR | SLA Guarantee\nStarter | $49 | 1,200 | $58,800 | 99.0%\nProfessional | $199 | 650 | $129,350 | 99.5%\nEnterprise Dedicated | $999 | 240 | $239,760 | 99.95%"
+    ],
+    "ground_truth_answer": "The Enterprise Dedicated tier generates the highest MRR, contributing $239,760 per month across 240 active accounts.",
+    "key_facts": [
+      "Enterprise Dedicated",
+      "$239,760",
+      "240"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-024",
+    "category": "multi_format_ingestion",
+    "question": "Which Python libraries are utilized to parse DOCX, XLSX, and PPTX files respectively in DocuMind?",
+    "chat_history": [],
+    "context_documents": [
+      "DocuMind extracts text from Word documents (.docx) using python-docx, parsing both body paragraphs and embedded table cells.",
+      "Excel spreadsheets (.xlsx, .xls) are parsed sheet-by-sheet via openpyxl into pipe-delimited text representations.",
+      "PowerPoint presentation decks (.pptx) are parsed using python-pptx to extract slide titles and text shapes."
+    ],
+    "ground_truth_answer": "DocuMind uses `python-docx` for DOCX files, `openpyxl` for XLSX/XLS spreadsheets, and `python-pptx` for PPTX presentations.",
+    "key_facts": [
+      "python-docx",
+      "openpyxl",
+      "python-pptx"
+    ],
+    "expected_crag_action": "relevant"
+  },
+  {
+    "id": "tc-025",
+    "category": "multi_format_ingestion",
+    "question": "How does DocuMind handle HTML documents during text extraction to prevent formatting pollution?",
+    "chat_history": [],
+    "context_documents": [
+      "During HTML file ingestion, DocuMind uses regular expressions to strip all <script> and <style> blocks including their internal contents.",
+      "It then removes all HTML tags (<...>), replacing them with single spaces and normalizing consecutive whitespaces."
+    ],
+    "ground_truth_answer": "DocuMind strips all <script> and <style> tags and their contents, eliminates remaining HTML tags, and normalizes excess whitespace.",
+    "key_facts": [
+      "<script>",
+      "<style>",
+      "HTML tags",
+      "whitespace"
+    ],
+    "expected_crag_action": "relevant"
+  }
+]

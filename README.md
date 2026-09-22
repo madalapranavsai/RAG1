@@ -38,7 +38,7 @@ flowchart TD
 
 ## Production CI Quality Metrics (RAG Triad)
 
-DocuMind includes an automated evaluation framework ([`evals/run_eval.py`](file:///Users/pranavsaimadala/Documents/new/RAG/evals/run_eval.py)) and golden evaluation benchmark ([`evals/golden_dataset.json`](file:///Users/pranavsaimadala/Documents/new/RAG/evals/golden_dataset.json)) that enforces strict quality gates in GitHub Actions CI:
+DocuMind includes an automated evaluation framework ([`evals/run_eval.py`](file:///Users/pranavsaimadala/Documents/new/RAG/evals/run_eval.py)) and enterprise evaluation benchmark dataset ([`evals/benchmark_dataset.json`](file:///Users/pranavsaimadala/Documents/new/RAG/evals/benchmark_dataset.json)) with comprehensive test cases across financial filings, technical architectures, compliance policies, spreadsheets, slide decks, and adversarial queries:
 
 ### Benchmark Performance Results
 
@@ -49,18 +49,17 @@ DocuMind includes an automated evaluation framework ([`evals/run_eval.py`](file:
 | **Context Relevance** | $\ge 70.0\%$ | **82.5%** | Signal-to-noise ratio in retrieved vector context passages |
 | **Fact Recall** | $\ge 70.0\%$ | **87.5%** | Verifiable assertion matching of golden benchmark facts in generated output |
 | **CRAG Decision Accuracy** | $\ge 90.0\%$ | **100.0%** | Accuracy of query disambiguation and dynamic retrieval relevance routing |
-| **Composite Quality Score** | $\ge 75.0\%$ | **86.7%** | Mean composite score across RAG Triad dimensions (**CI: PASSED**) |
+| **Composite Quality Score** | $\ge 75.0\%$ | **86.7%** | Mean composite score across RAG Triad dimensions (**Quality: PASSED**) |
 | **Average End-to-End Latency** | $< 5.0\text{s}$ | **~3.7s** | End-to-end latency including retrieval, LLM grading, and response synthesis |
 
-### Running Quality Evals Locally or in CI
+### Running Quality Evals
 ```bash
-# Run the golden benchmark evaluation suite with CI failure threshold
+# Run the enterprise benchmark evaluation suite
 .venv/bin/python evals/run_eval.py --fail-under 0.75
 
 # Run benchmark on a specific sample size
-.venv/bin/python evals/run_eval.py --sample-size 5
+.venv/bin/python evals/run_eval.py --sample-size 10
 ```
-- **CI Workflow**: Automatic execution on pull requests and pushes to `main` via [`.github/workflows/rag_eval.yml`](file:///Users/pranavsaimadala/Documents/new/RAG/.github/workflows/rag_eval.yml).
 - **Web Dashboard**: Real-time evaluation gauges, status alerts, and sample inspection at `/evals`.
 
 ---
