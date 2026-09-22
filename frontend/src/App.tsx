@@ -8,6 +8,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Documents } from './pages/Documents';
 import { Chat } from './pages/Chat';
 import { Usage } from './pages/Usage';
+import { Evals } from './pages/Evals';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading } = useAuth();
@@ -80,6 +81,7 @@ export function App() {
             <Route path="documents" element={<Documents />} />
             <Route path="chat" element={<Chat />} />
             <Route path="usage" element={<Usage />} />
+            <Route path="evals" element={<Evals />} />
           </Route>
 
           {/* Catch-all */}

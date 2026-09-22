@@ -1,0 +1,61 @@
+{
+  "timestamp": "2026-09-22 19:02:07 UTC",
+  "sample_count": 2,
+  "fail_under_threshold": 0.75,
+  "passed": true,
+  "metrics": {
+    "composite_score": 0.867,
+    "avg_faithfulness": 1.0,
+    "avg_answer_relevance": 1.0,
+    "avg_context_relevance": 0.6,
+    "avg_fact_recall": 0.75,
+    "crag_accuracy": 1.0,
+    "avg_latency_ms": 3756.0
+  },
+  "results": [
+    {
+      "id": "eval-001",
+      "category": "factual_extraction",
+      "question": "What is the primary function of the DocuMind RAG graph state machine?",
+      "search_query": "What is the primary function of the DocuMind RAG graph state machine?",
+      "actual_answer": "The DocuMind RAG graph state machine, specifically a LangGraph StateGraph pipeline, is used to coordinate several key functions: query disambiguation, hybrid retrieval, relevance grading, and generative response synthesis.\n\nFollow-up Questions:\n1. Can you explain query disambiguation in more detail?\n2. What is hybrid retrieval?",
+      "ground_truth": "The primary function of the DocuMind RAG graph state machine is to coordinate conversational query disambiguation, hybrid retrieval, relevance grading, and response generation.",
+      "crag_grade": "relevant",
+      "expected_crag": "relevant",
+      "crag_correct": true,
+      "latency_ms": 3579.68,
+      "scores": {
+        "faithfulness": 1.0,
+        "answer_relevance": 1.0,
+        "context_relevance": 0.2,
+        "fact_recall": 0.5
+      },
+      "reasoning": {
+        "faithfulness": "The assistant's answer directly and accurately reflects the information provided in the context document regarding the functions coordinated by the DocuMind RAG graph state machine.",
+        "answer_relevance": "The generated answer directly addresses the user's question by stating the primary function of the DocuMind RAG graph state machine and accurately lists the coordinated functions, aligning perfectly with the ground truth."
+      }
+    },
+    {
+      "id": "eval-002",
+      "category": "tabular_analysis",
+      "question": "What was the total Q3 revenue and net margin reported for the Cloud division in 2024?",
+      "search_query": "What was the total Q3 revenue and net margin reported for the Cloud division in 2024?",
+      "actual_answer": "The Cloud Infra division reported a Q3 Revenue of $54.8M and a Net Margin of 28.4% in 2024.\n\nFollow-up Questions:\n1. What was the Q3 revenue for the Consumer Apps division?\n2. Can you show me the revenue trends for Cloud Infra across all quarters?",
+      "ground_truth": "In Q3 2024, the Cloud Infrastructure division reported a total revenue of $54.8M with a net margin of 28.4%.",
+      "crag_grade": "relevant",
+      "expected_crag": "relevant",
+      "crag_correct": true,
+      "latency_ms": 3932.38,
+      "scores": {
+        "faithfulness": 1.0,
+        "answer_relevance": 1.0,
+        "context_relevance": 1.0,
+        "fact_recall": 1.0
+      },
+      "reasoning": {
+        "faithfulness": "The assistant's answer directly and accurately extracts the Q3 revenue and Net Margin for the Cloud Infra division from the provided 'Financial_Summary_2024' sheet.",
+        "answer_relevance": "The generated answer directly and accurately addresses the user's question by providing the exact Q3 revenue and net margin for the Cloud division in 2024 as stated in the ground truth."
+      }
+    }
+  ]
+}

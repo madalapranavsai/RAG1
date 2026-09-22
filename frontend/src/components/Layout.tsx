@@ -6,6 +6,7 @@ import {
   FileText,
   MessageSquare,
   Activity,
+  ShieldCheck,
   LogOut,
   Building2,
   Menu,
@@ -29,6 +30,7 @@ export const Layout: React.FC = () => {
     { to: '/documents', label: 'Documents & Sandbox', icon: FileText },
     { to: '/chat', label: 'Chat & A2UI', icon: MessageSquare },
     { to: '/usage', label: 'Usage & Capacity', icon: Activity },
+    { to: '/evals', label: 'Quality & CI Evals', icon: ShieldCheck },
   ];
 
   return (

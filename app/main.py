@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.core.config import settings
 from app.core.supabase import get_supabase_client, get_admin_client
-from app.api import auth, documents, retrieval, chat, usage
+from app.api import auth, documents, retrieval, chat, usage, evals
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -27,6 +27,7 @@ app.include_router(documents.router)
 app.include_router(retrieval.router)
 app.include_router(chat.router)
 app.include_router(usage.router)
+app.include_router(evals.router)
 
 frontend_dist = "frontend/dist"
 if os.path.exists(frontend_dist):
