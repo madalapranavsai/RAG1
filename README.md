@@ -1,121 +1,126 @@
-# DocuMind - Multi-Tenant RAG SaaS Platform
+# DocuMind - Multi-Tenant RAG SaaS (Python Full-stack with LangGraph & Google Gemini)
 
-DocuMind is a high-performance, multi-tenant Retrieval-Augmented Generation (RAG) SaaS platform built with Next.js, Supabase, Postgres pgvector, and local client-free AI pipelines.
+DocuMind is a high-performance, multi-tenant Retrieval-Augmented Generation (RAG) SaaS platform built with **FastAPI**, **LangGraph**, **LangChain**, **Google Gemini**, and **PostgreSQL with pgvector**. It features 100% zero-cost deployment on free hosting tiers (Google AI Studio free API, Supabase free tier, Render / Hugging Face Spaces free container hosting).
 
 ---
 
 ## Architecture Flow
 
 ### 1. Ingestion Pipeline
-When a user uploads a knowledge document, the system processes it asynchronously in the background:
+When a user uploads a knowledge document (PDF, TXT, or Markdown), it is processed asynchronously in the background:
 
 ```mermaid
 flowchart TD
-    A[User Uploads File in UI] --> B[Server Action validates file size/type]
+    A[User Uploads File in UI] --> B[FastAPI validates file size max 2MB & format]
     B --> C[Write file to Supabase private storage]
     C --> D[Insert document record status: uploaded]
-    D --> E[Trigger background processor promise]
+    D --> E[Trigger background processor task]
     E --> F[Download file inside admin client context]
-    F --> G[Extract raw text from PDF/TXT/MD]
-    G --> H[Partition text into overlapping semantic chunks]
-    H --> I[Generate dense vector embedding arrays]
-    I --> J[Bulk insert chunks with embeddings into Postgres]
+    F --> G[Extract raw text from PDF/TXT/MD using PyPDF]
+    G --> H[Partition text into overlapping semantic chunks via LangChain]
+    H --> I[Generate dense vector embedding arrays via FastEmbed]
+    I --> J[Bulk insert chunks with embeddings into Postgres pgvector]
     J --> K[Update document status to ready & Log usage events]
 ```
 
-### 2. RAG Retrieval & Chat Flow
-When a user asks a question in a conversation session, the context is fetched and formulated:
+### 2. LangGraph RAG Retrieval & Chat Flow
+When a user asks a question, the conversation flows through a compiled **LangGraph** `StateGraph`:
 
 ```mermaid
 flowchart TD
-    A[User query input] --> B[Server Action retrieves chat history]
-    B --> C[Generate vector embedding for query text]
-    C --> D[Query Postgres match_chunks RPC function]
-    D --> E[Retrieve similar chunks scoped to workspace]
-    E --> F[Inject document context into RAG system instructions]
-    F --> G[Call LLM API completions endpoint]
-    G --> H[Write assistant reply to database]
-    H --> I[Log billing tokens consumed & return message thread]
+    A[User Chat Input] --> B[Retrieve Node: Embed query & run match_chunks RPC]
+    B --> C[Format Node: Extract document context with page/file citations]
+    C --> D[Generate Node: Invoke Google Gemini gemini-1.5-flash]
+    D --> E[Track Node: Persist assistant message & record token usage]
+    E --> F[Return Grounded Answer + Citations + 2 Follow-Up Questions]
 ```
 
 ---
 
 ## Tech Stack
-- **Framework**: Next.js (App Router, Server Actions, React 19)
-- **Styling**: Tailwind CSS
-- **Database & Storage**: Supabase (PostgreSQL with `pgvector` extension)
-- **Authentication**: Supabase Auth (Cookie-based session middleware validation)
-- **Embeddings**: Transformers.js running in-process (Hugging Face `all-MiniLM-L6-v2`) or OpenAI API (`text-embedding-3-small`)
-- **LLM Engine**: OpenAI Chat Completion API (`gpt-4o-mini`)
-- **Containers**: Docker Compose (for local Postgres vector database testing)
+- **Backend & Full-stack Web Framework**: Python 3.12, FastAPI, Jinja2, Uvicorn
+- **RAG Orchestration**: LangGraph (`StateGraph`), LangChain Core, `langchain-text-splitters`
+- **LLM Engine**: **Google Gemini** (`gemini-1.5-flash` / `gemini-2.0-flash`) via `langchain-google-genai` (100% Free Tier)
+- **Embeddings**: FastEmbed in-process local execution (`sentence-transformers/all-MiniLM-L6-v2`, 384 dimensions, zero API cost) or Gemini `text-embedding-004`
+- **Database & Storage**: Supabase (PostgreSQL with `pgvector`, Supabase Auth, Supabase Storage)
+- **PDF Extraction**: `pypdf`
+- **Containerization & Deployment**: Docker, Render.com Blueprint (`render.yaml`), Hugging Face Spaces
 
 ---
 
 ## Local Setup Instructions
 
 ### Prerequisites
-- Docker & Docker Compose installed.
-- Node.js (version 20+ / 22+).
-- An OpenAI API Key (if using OpenAI completion/embedding routes).
+- Python 3.12+
+- A free Google Gemini API Key from [Google AI Studio](https://aistudio.google.com/)
+- A free Supabase project from [Supabase.com](https://supabase.com/)
 
-### Step 1: Start Database Container
-Boot the local PostgreSQL database configured with the `pgvector` extension:
+### Step 1: Clone & Create Virtual Environment
 ```bash
-docker compose up -d
+git clone https://github.com/madalapranavsai/RAG1.git
+cd RAG1
+
+# Create and activate Python virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
 ### Step 2: Supabase Schema Configuration
-Apply the database schemas and RLS security triggers. If using Supabase Local CLI, run `supabase start` or manually apply migrations located in the `supabase/migrations/` directory against your database instance:
-1. `20260716000000_init.sql` (Creates base schemas and `match_chunks` function).
+In your Supabase project SQL Editor, run the SQL migrations from `supabase/migrations/`:
+1. `20260716000000_init.sql` (Creates base schemas, `pgvector`, and `match_chunks` function).
 2. `20260716000100_auth_triggers.sql` (Autogenerates default profile/workspaces on sign-up).
-3. `20260716000200_rls_policies.sql` (Activates Row Level Security).
-4. `20260716000300_storage_policies.sql` (Applies path-isolated storage policies).
+3. `20260716000200_rls_policies.sql` (Row Level Security).
+4. `20260716000300_storage_policies.sql` (Path-isolated storage policies).
 
 ### Step 3: Configure Environment Variables
-Copy `.env.example` to `.env.local` and populate the configuration keys:
+Copy `.env.example` to `.env` and fill in your keys:
 ```bash
-cp .env.example .env.local
+cp .env.example .env
 ```
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
+GOOGLE_API_KEY=your-google-ai-studio-api-key
+GEMINI_MODEL=gemini-1.5-flash
 EMBEDDING_PROVIDER=local
-# Optional: OpenAI embeddings fallback
-# EMBEDDING_PROVIDER=openai
-# EMBEDDING_MODEL=text-embedding-3-small
-
-LLM_PROVIDER=openai
-LLM_MODEL=gpt-4o-mini
-LLM_API_KEY=sk-proj-your-openai-api-key
 ```
 
 ### Step 4: Run Application
-Install dependencies and launch the Next.js development server:
 ```bash
-npm install
-npm run dev
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
+Open [http://localhost:8000](http://localhost:8000) to view your application!
 
-Open [http://localhost:3000](http://localhost:3000) to view the onboarding registration page.
+---
+
+## Free Cloud Deployment
+
+See [deployment.md](file:///Users/pranavsaimadala/Documents/new/RAG/deployment.md) for 1-click zero-cost deployment instructions on:
+- **Render.com** (Free Web Service via `render.yaml` or `Dockerfile`)
+- **Hugging Face Spaces** (Free Docker container with 16GB RAM)
+- **Koyeb** (Free Nano container)
 
 ---
 
 ## Features Walkthrough
 
 ### 1. Multi-Tenant Workspace Protection
-Upon registering, every user is auto-allocated a default workspace. Access to database tables (`profiles`, `documents`, `document_chunks`, `chats`, `chat_messages`) is strictly constrained to workspace members via RLS helper definers.
+Every user registration automatically provisions an isolated workspace. Documents, vector chunks, chat sessions, and usage records are strictly scoped to the active workspace with Row-Level Security (RLS).
 
-### 2. Document Parsing
-Upload PDF, TXT, or MD files via the drag-and-drop dropzone dashboard. Text is chunked in blocks of 3000 characters (with 500 characters overlap) and embedded locally using ONNX feature-extraction models.
+### 2. Knowledge Document Parsing & Chunking
+Upload PDF, TXT, or Markdown files up to 2MB. Files are chunked in overlapping blocks of 3,000 characters (500 overlap) and embedded locally using FastEmbed.
 
-### 3. Sandbox Debugger
-Query vector contents directly in the **Retrieval Sandbox** at the bottom of the Documents page to view rank matches, document citations, and cosine similarity margins.
+### 3. Retrieval Sandbox
+Test raw vector similarity matching directly from the **Documents** page to view rank matches, document citations, and cosine similarity margins.
 
-### 4. Interactive Chat
-Engage in session-tracked discussions. Conversations automatically retrieve matching segments, context-bind questions, and update thread titles.
+### 4. Interactive LangGraph Chat
+Engage in session-tracked discussions. LangGraph executes query retrieval, context formatting, Gemini response generation, citation card extraction, and two suggested follow-up questions.
 
-### 5. Analytics & Metrics
-Inspect resource usage bars on the **Usage** dashboard to monitor workspace capacities against Free Sandbox limits (10 uploads, 500 chunks, 100K tokens).
+### 5. Capacity & Usage Analytics
+Real-time progress bars monitor workspace resource consumption against Free Sandbox quotas (10 uploads, 500 chunks, 100K tokens) with complete audit event logs.

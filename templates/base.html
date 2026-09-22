@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}DocuMind - Multi-Tenant RAG SaaS{% endblock %}</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            primary: {
+              50: '#eef2ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full flex overflow-hidden">
+  {% if user %}
+  <!-- Sidebar Navigation -->
+  <aside class="w-64 border-r border-slate-800/80 bg-slate-900/90 flex flex-col flex-shrink-0">
+    <!-- Brand & Workspace -->
+    <div class="h-16 px-6 border-b border-slate-800 flex flex-col justify-center">
+      <div class="flex items-center gap-2.5">
+        <span class="flex h-3 w-3 rounded-full bg-indigo-500 shadow-[0_0_12px_rgba(99,102,241,0.7)] animate-pulse"></span>
+        <span class="font-bold text-white tracking-tight text-lg">DocuMind</span>
+        <span class="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">AI</span>
+      </div>
+      <span class="text-[11px] text-slate-400 font-medium truncate mt-0.5">
+        {{ user.workspace_name or "Personal Workspace" }}
+      </span>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="flex-1 px-4 py-6 space-y-1.5 overflow-y-auto">
+      <a href="/dashboard" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all {% if active_page == 'dashboard' %}bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold{% else %}text-slate-400 hover:text-white hover:bg-slate-800/60{% endif %}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        Overview
+      </a>
+
+      <div class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-3 pt-5 pb-1">
+        RAG Workspace
+      </div>
+
+      <a href="/documents" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all {% if active_page == 'documents' %}bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold{% else %}text-slate-400 hover:text-white hover:bg-slate-800/60{% endif %}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Documents
+      </a>
+
+      <a href="/chat" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all {% if active_page == 'chat' %}bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold{% else %}text-slate-400 hover:text-white hover:bg-slate-800/60{% endif %}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+        Chat Base
+      </a>
+
+      <a href="/usage" class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-all {% if active_page == 'usage' %}bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 font-semibold{% else %}text-slate-400 hover:text-white hover:bg-slate-800/60{% endif %}">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        Usage Analytics
+      </a>
+    </nav>
+
+    <!-- User Account / Logout -->
+    <div class="p-4 border-t border-slate-800 bg-slate-900/40">
+      <div class="flex flex-col gap-2.5">
+        <div class="px-1 truncate">
+          <p class="text-xs font-semibold text-slate-200 truncate">{{ user.email }}</p>
+          <p class="text-[11px] text-slate-400 capitalize flex items-center gap-1.5 mt-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+            Role: {{ user.role or "Member" }}
+          </p>
+        </div>
+        <button onclick="handleLogout()" class="w-full text-center px-3 py-1.5 text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 border border-rose-500/20 rounded-lg transition-all">
+          Sign out
+        </button>
+      </div>
+    </div>
+  </aside>
+  {% endif %}
+
+  <!-- Main View Pane -->
+  <div class="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+    {% if user %}
+    <header class="h-16 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between px-8 flex-shrink-0">
+      <h2 class="font-semibold text-white text-sm tracking-tight flex items-center gap-2">
+        {% block header_title %}Dashboard Overview{% endblock %}
+      </h2>
+      <div class="flex items-center gap-3">
+        <span class="text-xs px-2.5 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700 font-mono text-[11px]">
+          Engine: Google Gemini
+        </span>
+        <span class="text-xs px-2.5 py-1 rounded-full bg-indigo-950/60 text-indigo-300 border border-indigo-800/60 text-[11px] flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse"></span>
+          LangGraph Active
+        </span>
+      </div>
+    </header>
+    {% endif %}
+
+    <main class="flex-1 overflow-y-auto p-8">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script>
+    async function handleLogout() {
+      try {
+        await fetch('/api/auth/logout', { method: 'POST' });
+        window.location.href = '/login';
+      } catch (err) {
+        window.location.href = '/login';
+      }
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

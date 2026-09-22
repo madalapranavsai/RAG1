@@ -6,38 +6,39 @@ The system is a full-stack RAG SaaS application. Users upload documents into a w
 
 ## Recommended Free-First Stack
 
-- Frontend: Next.js with React and TypeScript
+- Backend & Web App: Python 3.12 with FastAPI and Jinja2
 - Styling: Tailwind CSS
+- RAG Orchestration: LangGraph (`StateGraph`) + LangChain Core
+- LLM Engine: Google Gemini (`gemini-1.5-flash` / `gemini-2.0-flash`) via `langchain-google-genai`
+- Embeddings: FastEmbed in-process local execution (`sentence-transformers/all-MiniLM-L6-v2`, 384 dim)
+- Ingestion & Parsing: PyPDF + LangChain `RecursiveCharacterTextSplitter`
 - Auth: Supabase Auth
-- Database: Supabase Postgres
-- Vector storage: Supabase Postgres with `pgvector`
+- Database & Vector storage: Supabase Postgres with `pgvector`
 - File storage: Supabase Storage
-- Embeddings: local or Hugging Face model for free prototype
-- LLM: local Ollama model for development, paid API optional later
-- Deployment: Dockerized app on Railway, Render, Fly.io, or a VPS
+- Deployment: Dockerized app on Render, Hugging Face Spaces, Koyeb, or a VPS (100% Free Tiers)
 - Repository: GitHub
-- Optional A2UI layer: custom JSON schema rendered by React components
 
 ## High-Level Flow
 
 ```text
 User
-  -> Next.js App
+  -> FastAPI Full-stack App
   -> Supabase Auth
-  -> Upload File
+  -> Upload File (PDF/TXT/MD)
   -> Supabase Storage
   -> Document Metadata in Postgres
-  -> Processing Worker/API
-  -> Text Extraction
-  -> Chunking
-  -> Embedding Generation
+  -> Background Processing Task
+  -> PyPDF Text Extraction
+  -> LangChain Text Chunking
+  -> FastEmbed Local Embedding Generation
   -> document_chunks table with pgvector
   -> Ask Question
   -> Query Embedding
-  -> Workspace-Scoped Vector Search
-  -> LLM Answer Generation
-  -> Answer + Citations + Optional A2UI Payload
-  -> Validated React UI Components
+  -> Workspace-Scoped Vector Search (match_chunks RPC)
+  -> LangGraph StateGraph Execution
+  -> Google Gemini Answer Generation
+  -> Answer + Citations + 2 Follow-Up Questions
+  -> Responsive UI / Markdown Rendering
 ```
 
 ## Main Modules

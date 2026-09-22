@@ -1,314 +1,149 @@
-# Deployment Guide
+# 100% Free-Tier Deployment Guide
 
-## Goal
+Deploy the **DocuMind Python Full-stack RAG SaaS** application with **LangGraph**, **LangChain**, and **Google Gemini** completely free of charge without requiring a paid subscription or credit card.
 
-Deploy the RAG SaaS application using free or low-cost resources while keeping the architecture production-shaped enough for a resume project.
+---
 
-Recommended deployment:
+## Free Hosting Architecture
 
-- Frontend and API: Dockerized Next.js app
-- Auth, database, storage, and vectors: Supabase
-- Vector search: Supabase Postgres with `pgvector`
-- Embeddings: free/local provider during development, paid API optional for deployed demo
-- LLM: low-cost hosted API for deployed demo, local Ollama for local development only
-
-## Deployment Architecture
-
-```text
-Browser
-  -> Dockerized Next.js App
-  -> Next.js API Routes / Server Actions
-  -> Supabase Auth
-  -> Supabase Storage
-  -> Supabase Postgres + pgvector
-  -> Embedding Provider
-  -> LLM Provider
+```
+User Browser
+    │
+    ▼
+[Render / Hugging Face Spaces (Free Python Web Service)]
+    │  FastAPI + HTML5/Tailwind Web UI
+    │  LangGraph StateGraph Workflow
+    │  FastEmbed (Local MiniLM Embeddings in RAM - 0 API cost)
+    │
+    ├──▶ Google AI Studio [Gemini 1.5 Flash] (Free LLM API)
+    │
+    └──▶ Supabase Cloud (Free Tier)
+         ├── PostgreSQL + pgvector (vector similarity search via RPC)
+         ├── Supabase Auth (User signups and sessions)
+         └── Supabase Storage (Private document files)
 ```
 
-## Supabase Setup
+---
 
-### 1. Create Project
+## Step 1: Get Free Google Gemini API Key
 
-1. Create a Supabase project.
-2. Save the project URL.
-3. Save the anon key.
-4. Save the service role key securely.
+Google provides generous **free API access** to its frontier Gemini models via Google AI Studio:
 
-Never expose the service role key in browser code.
+1. Visit **[Google AI Studio](https://aistudio.google.com/)**.
+2. Sign in with any Google account (no credit card required).
+3. Click **"Get API key"** in the top navigation.
+4. Click **"Create API key"** and copy your `GOOGLE_API_KEY`.
+5. Free Limits for `gemini-1.5-flash`:
+   - **15 Requests per Minute (RPM)**
+   - **1,000,000 Tokens per Minute (TPM)**
+   - **1,500 Requests per Day (RPD)**
 
-### 2. Enable pgvector
+---
 
-In Supabase SQL editor:
+## Step 2: Set Up Free Supabase Database & Storage
 
-```sql
-create extension if not exists vector with schema extensions;
-```
+Supabase provides a generous free tier with 500MB PostgreSQL, `pgvector`, and 1GB storage:
 
-### 3. Create Tables
+1. Go to **[Supabase](https://supabase.com/)** and create a free account.
+2. Create a new project (e.g., `documind-rag`).
+3. Under **Project Settings -> API**, copy:
+   - **Project URL** (`SUPABASE_URL`)
+   - **anon public key** (`SUPABASE_ANON_KEY`)
+   - **service_role secret key** (`SUPABASE_SERVICE_ROLE_KEY`)
+4. Open the **SQL Editor** in Supabase and run the migrations in order:
+   - Run `supabase/migrations/20260716000000_init.sql` (Enables `uuid-ossp`, `pgvector`, creates tables, indexes, and `match_chunks` RPC).
+   - Run `supabase/migrations/20260716000100_auth_triggers.sql` (Auto-creates workspaces on user signup).
+   - Run `supabase/migrations/20260716000200_rls_policies.sql` (Row Level Security).
+   - Run `supabase/migrations/20260716000300_storage_policies.sql` (Storage path security).
+5. In the Supabase Dashboard, go to **Storage**:
+   - Verify that the private bucket named `documents` exists (created by migration 4).
 
-Create the schema from `architecture.md`.
+---
 
-Core tables:
+## Step 3: Local Testing
 
-- `profiles`
-- `workspaces`
-- `workspace_members`
-- `documents`
-- `document_chunks`
-- `chats`
-- `chat_messages`
-- `usage_events`
-
-For A2UI support, include:
-
-```sql
-alter table chat_messages
-add column if not exists ui_payload jsonb;
-```
-
-### 4. Enable Row Level Security
-
-Enable RLS on tenant-owned tables:
-
-```sql
-alter table profiles enable row level security;
-alter table workspaces enable row level security;
-alter table workspace_members enable row level security;
-alter table documents enable row level security;
-alter table document_chunks enable row level security;
-alter table chats enable row level security;
-alter table chat_messages enable row level security;
-alter table usage_events enable row level security;
-```
-
-### 5. Create Storage Bucket
-
-Create a bucket:
-
-```text
-documents
-```
-
-Recommended storage path format:
-
-```text
-workspaces/{workspace_id}/documents/{document_id}/{filename}
-```
-
-### 6. Create Vector Index
-
-For OpenAI `text-embedding-3-small`, use `vector(1536)`.
-
-```sql
-create index if not exists document_chunks_embedding_hnsw_idx
-on document_chunks
-using hnsw (embedding vector_cosine_ops);
-```
-
-If using a different embedding model, match the vector column dimension to that model.
-
-## Environment Variables
-
-Create `.env.local` for local development:
+To test the application locally on your machine:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
+# 1. Activate the Python virtual environment
+source .venv/bin/activate
 
-EMBEDDING_PROVIDER=
-EMBEDDING_MODEL=
-EMBEDDING_DIMENSIONS=
+# 2. Configure environment variables in .env
+cp .env.example .env
+# Fill in your GOOGLE_API_KEY, SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 
-LLM_PROVIDER=
-LLM_MODEL=
-LLM_API_KEY=
+# 3. Launch the FastAPI server
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Example provider values:
+Open [http://localhost:8000](http://localhost:8000) in your browser:
+- Register an account at `/signup`.
+- Upload a PDF, TXT, or Markdown document at `/documents`.
+- Test similarity matching in the **Retrieval Sandbox**.
+- Chat with your documents at `/chat` via LangGraph + Gemini.
 
-```bash
-EMBEDDING_PROVIDER=openai
-EMBEDDING_MODEL=text-embedding-3-small
-EMBEDDING_DIMENSIONS=1536
+---
 
-LLM_PROVIDER=openai
-LLM_MODEL=gpt-4.1-mini
-```
+## Step 4: Deploy for Free on Cloud Platforms
 
-For a free-first local setup, you can use local embeddings and Ollama locally, but deployed containers cannot depend on your laptop's local Ollama server.
+### Option A: Render.com (Recommended Free Web Service)
 
-## Docker Deployment Setup
+Render provides free web services supporting Docker containers:
 
-Use Docker for the application runtime. Keep state in managed services such as Supabase.
+1. Push your repository to **GitHub**.
+2. Go to **[Render.com](https://render.com/)** and connect your GitHub account.
+3. Click **New +** -> **Web Service**.
+4. Select your `RAG` repository.
+5. Configuration:
+   - **Environment**: `Docker`
+   - **Instance Type**: `Free`
+   - **Dockerfile Path**: `./Dockerfile`
+6. Add the following **Environment Variables**:
+   ```
+   SUPABASE_URL = https://your-id.supabase.co
+   SUPABASE_ANON_KEY = your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY = your-service-role-key
+   GOOGLE_API_KEY = your-gemini-api-key
+   GEMINI_MODEL = gemini-1.5-flash
+   EMBEDDING_PROVIDER = local
+   ```
+7. Click **Create Web Service**. Render will build the container and deploy your live URL (e.g. `https://documind-rag.onrender.com`).
 
-For detailed Docker files and commands, see `docker.md`.
+---
 
-Production container options:
+### Option B: Hugging Face Spaces (100% Free Docker Container with 16GB RAM)
 
-- Railway
-- Render
-- Fly.io
-- Google Cloud Run
-- AWS ECS
-- Azure Container Apps
-- VPS with Docker Compose
+Hugging Face Spaces offers completely free Docker hosting with generous memory:
 
-Recommended resume-project path:
+1. Go to **[Hugging Face Spaces](https://huggingface.co/spaces)** and click **Create new Space**.
+2. Set Space name (e.g. `documind-rag`).
+3. Select **Docker** as the Space SDK (Blank).
+4. In Space **Settings -> Variables and secrets**, add your environment variables:
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `GOOGLE_API_KEY`
+   - `GEMINI_MODEL` = `gemini-1.5-flash`
+   - `EMBEDDING_PROVIDER` = `local`
+5. Push your repository code to the Hugging Face space repository. It will automatically build and launch!
 
-1. Use Docker Compose locally.
-2. Use Supabase for hosted Auth, Postgres, Storage, and `pgvector`.
-3. Deploy the Dockerized app to Railway or Render.
-4. Keep uploads in Supabase Storage, not inside the container.
+---
 
-## Vercel Setup
+### Option C: Koyeb (Free Nano Tier)
 
-Vercel is still possible, but if the project goal is Docker, prefer Railway, Render, Fly.io, or a VPS because Vercel does not deploy a normal long-running Docker container for standard Next.js hosting.
+1. Sign up at **[Koyeb](https://www.koyeb.com/)**.
+2. Create an App from GitHub.
+3. Select **Docker build**.
+4. Set port to `8000`.
+5. Add your environment variables and deploy.
 
-### 1. Push Code to GitHub
+---
 
-Create a GitHub repository and push the project.
+## Summary of Free Quotas
 
-### 2. Import Project in Vercel
-
-1. Open Vercel.
-2. Import the GitHub repository.
-3. Select the Next.js framework preset.
-4. Add environment variables.
-5. Deploy.
-
-### 3. Add Environment Variables in Vercel
-
-Add:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `EMBEDDING_PROVIDER`
-- `EMBEDDING_MODEL`
-- `EMBEDDING_DIMENSIONS`
-- `LLM_PROVIDER`
-- `LLM_MODEL`
-- `LLM_API_KEY`
-
-Only variables prefixed with `NEXT_PUBLIC_` are safe for browser exposure.
-
-## Docker Environment Variables
-
-Set these in your container host:
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-
-DATABASE_URL=
-
-EMBEDDING_PROVIDER=
-EMBEDDING_MODEL=
-EMBEDDING_DIMENSIONS=
-
-LLM_PROVIDER=
-LLM_MODEL=
-LLM_API_KEY=
-```
-
-If using managed Supabase for the database, `DATABASE_URL` should point to Supabase Postgres.
-
-## Container and Free-Tier Limits
-
-Free container hosts may sleep, throttle CPU, or enforce memory limits. For the resume MVP:
-
-- Keep uploaded files small.
-- Start with Markdown and TXT.
-- Add PDF support after the basic flow works.
-- Process one document at a time.
-- Show clear failed status if processing fails or times out.
-
-If processing becomes slow, move ingestion to:
-
-- Supabase Edge Functions
-- Trigger.dev
-- Inngest
-- A small Railway/Fly.io worker
-
-## Deployment Checklist
-
-Before deploying:
-
-- App builds locally.
-- Auth works locally.
-- Supabase environment variables are set.
-- Docker image builds successfully.
-- Container starts successfully.
-- `pgvector` is enabled.
-- Tables are created.
-- RLS is enabled.
-- Storage bucket exists.
-- Upload works locally.
-- Ingestion works for a small Markdown file.
-- Retrieval filters by `workspace_id`.
-- Generated answers include citations.
-- A2UI payloads are validated before rendering.
-
-After deploying:
-
-- Create a new account.
-- Upload `refund-policy.md` from `testing.md`.
-- Confirm document status becomes `ready`.
-- Ask: `How long do customers have to request a refund?`
-- Confirm answer says `7 days`.
-- Confirm citation appears.
-- Check Usage page.
-- Test logout and login again.
-
-## Public Demo Safety
-
-If sharing the deployed app publicly:
-
-- Add file size limits.
-- Add per-user upload limits.
-- Add per-user question limits.
-- Avoid expensive default models.
-- Do not allow anonymous uploads.
-- Do not display raw processing errors to users.
-- Monitor Supabase usage.
-
-## Suggested Free Demo Limits
-
-For a resume project:
-
-- Max file size: 2 MB
-- Max documents per workspace: 5
-- Max questions per day: 25
-- Max chunks per document: 100
-- Max retrieved chunks per query: 5
-
-These limits keep free-tier usage under control and make the demo predictable.
-
-## README Deployment Section
-
-Add this to the README later:
-
-```md
-## Deployment
-
-This project is deployed as a Dockerized Next.js application with Supabase.
-
-Required services:
-
-- Docker-compatible host for the Next.js app
-- Supabase for Auth, Postgres, Storage, and pgvector
-- Optional hosted LLM provider for deployed answer generation
-
-Required environment variables are listed in `deployment.md`.
-Docker setup is documented in `docker.md`.
-```
-
-## Resume Note
-
-Mention deployment only if the live demo works reliably.
-
-Example:
-
-> Deployed a Dockerized multi-tenant RAG SaaS app with Supabase, workspace-scoped retrieval, document uploads, citation-backed answers, and validated A2UI response components.
+| Service | Component | Free Tier Allowance | Cost |
+|---|---|---|---|
+| **Google AI Studio** | Gemini 1.5 Flash | 15 RPM, 1M TPM, 1,500 RPD | **$0.00** |
+| **FastEmbed** | MiniLM Embeddings (384 dim) | Unlimited (runs inside container RAM) | **$0.00** |
+| **Supabase** | Postgres + pgvector + Auth + Storage | 500 MB DB, 1 GB Storage, 50k MAU | **$0.00** |
+| **Render / HF Spaces** | Web Service & Application Runtime | Free container instance with HTTPS | **$0.00** |

@@ -32,8 +32,8 @@ exception
 end;
 $$;
 
--- Enable Row Level Security on storage.objects if not already enabled
-alter table storage.objects enable row level security;
+-- Note: storage.objects already has RLS enabled by default on Supabase Cloud
+-- alter table storage.objects enable row level security;
 
 -- Storage Policies for "documents" bucket
 

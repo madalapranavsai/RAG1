@@ -56,50 +56,36 @@ volumes:
   postgres_data:
 ```
 
-## Dockerfile for Next.js
+## Dockerfile for Python FastAPI
 
-Create `Dockerfile` after the Next.js app exists:
+The application includes a production-ready `Dockerfile`:
 
 ```dockerfile
-FROM node:22-alpine AS base
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PORT=8000
+
 WORKDIR /app
 
-FROM base AS deps
-COPY package.json package-lock.json* ./
-RUN npm ci
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-FROM base AS builder
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
-RUN npm run build
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-FROM base AS runner
-ENV NODE_ENV=production
+# Pre-cache FastEmbed MiniLM model
+RUN python3 -c "from fastembed import TextEmbedding; TextEmbedding('sentence-transformers/all-MiniLM-L6-v2')"
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+COPY app/ ./app/
+COPY templates/ ./templates/
+COPY static/ ./static/
 
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+EXPOSE 8000
 
-USER nextjs
-
-EXPOSE 3000
-ENV PORT=3000
-
-CMD ["node", "server.js"]
-```
-
-Next.js must be configured for standalone output:
-
-```js
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  output: "standalone",
-};
-
-module.exports = nextConfig;
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
 ```
 
 ## Local Environment Variables

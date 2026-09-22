@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Usage Analytics - DocuMind RAG{% endblock %}
+{% block header_title %}Capacity & Usage Analytics{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto space-y-8">
+  <!-- Top Banner -->
+  <div class="glass-card rounded-2xl p-6 border border-slate-800">
+    <h1 class="text-xl font-bold text-white tracking-tight mb-1">Sandbox Usage Limits</h1>
+    <p class="text-xs text-slate-400">
+      Monitor workspace storage, vector chunk capacities, and model token usage against the Free Sandbox quota.
+    </p>
+  </div>
+
+  <!-- Capacity Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Documents Card -->
+    <div class="glass-card rounded-xl p-6 border border-slate-800 space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Documents Uploaded</span>
+        <span id="doc-count" class="text-xs font-mono font-bold text-indigo-400">-- / 10</span>
+      </div>
+      <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div id="doc-bar" class="h-full bg-indigo-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+      </div>
+      <p class="text-[11px] text-slate-500">Free Sandbox tier allows up to 10 stored documents.</p>
+    </div>
+
+    <!-- Chunks Card -->
+    <div class="glass-card rounded-xl p-6 border border-slate-800 space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Vector Chunks</span>
+        <span id="chunk-count" class="text-xs font-mono font-bold text-emerald-400">-- / 500</span>
+      </div>
+      <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div id="chunk-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+      </div>
+      <p class="text-[11px] text-slate-500">Partitioned at 3,000 chars with 500-char overlap.</p>
+    </div>
+
+    <!-- Tokens Card -->
+    <div class="glass-card rounded-xl p-6 border border-slate-800 space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Token Consumption</span>
+        <span id="token-count" class="text-xs font-mono font-bold text-amber-400">-- / 100,000</span>
+      </div>
+      <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div id="token-bar" class="h-full bg-amber-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+      </div>
+      <p class="text-[11px] text-slate-500">Includes prompt context & Gemini candidate output.</p>
+    </div>
+  </div>
+
+  <!-- Recent Audit Logs Table -->
+  <div class="glass-card rounded-2xl border border-slate-800 overflow-hidden">
+    <div class="p-6 border-b border-slate-800 flex items-center justify-between">
+      <div>
+        <h2 class="text-base font-bold text-white">Usage Audit Events</h2>
+        <p class="text-xs text-slate-400 mt-0.5">Direct telemetry events recorded across ingestion and completions</p>
+      </div>
+      <button onclick="loadUsage()" class="px-3 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-all flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Refresh
+      </button>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-slate-800/80 bg-slate-900/60 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+            <th class="py-3.5 px-6">Timestamp</th>
+            <th class="py-3.5 px-6">Event Type</th>
+            <th class="py-3.5 px-6">Quantity</th>
+            <th class="py-3.5 px-6">Details</th>
+          </tr>
+        </thead>
+        <tbody id="events-tbody" class="divide-y divide-slate-800/60 text-xs">
+          <tr>
+            <td colspan="4" class="py-8 text-center text-slate-500">Loading events...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  async function loadUsage() {
+    try {
+      const res = await fetch('/api/usage');
+      const data = await res.json();
+      const m = data.metrics || {};
+      const events = data.recent_events || [];
+
+      // Update Cards
+      if (m.documents) {
+        document.getElementById('doc-count').textContent = `${m.documents.used} / ${m.documents.limit}`;
+        document.getElementById('doc-bar').style.width = `${m.documents.percentage}%`;
+      }
+      if (m.chunks) {
+        document.getElementById('chunk-count').textContent = `${m.chunks.used} / ${m.chunks.limit}`;
+        document.getElementById('chunk-bar').style.width = `${m.chunks.percentage}%`;
+      }
+      if (m.tokens) {
+        document.getElementById('token-count').textContent = `${m.tokens.used.toLocaleString()} / ${m.tokens.limit.toLocaleString()}`;
+        document.getElementById('token-bar').style.width = `${m.tokens.percentage}%`;
+      }
+
+      // Update Events Table
+      const tbody = document.getElementById('events-tbody');
+      if (events.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" class="py-8 text-center text-slate-500">No usage events logged yet.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = events.map(e => {
+        const date = new Date(e.created_at).toLocaleString();
+        let badgeColor = 'bg-slate-800 text-slate-300 border-slate-700';
+        if (e.event_type === 'document_uploaded') badgeColor = 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20';
+        if (e.event_type === 'chunk_created') badgeColor = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+        if (e.event_type === 'token_used') badgeColor = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+        if (e.event_type === 'embedding_generated') badgeColor = 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
+
+        const meta = e.metadata ? JSON.stringify(e.metadata) : '-';
+
+        return `
+          <tr class="hover:bg-slate-900/40 transition-all font-mono text-[11px]">
+            <td class="py-3 px-6 text-slate-400">${date}</td>
+            <td class="py-3 px-6">
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold border ${badgeColor}">
+                ${e.event_type}
+              </span>
+            </td>
+            <td class="py-3 px-6 text-white font-semibold">${e.quantity}</td>
+            <td class="py-3 px-6 text-slate-500 truncate max-w-xs font-sans text-xs">${meta}</td>
+          </tr>
+        `;
+      }).join('');
+    } catch (err) {
+      document.getElementById('events-tbody').innerHTML = `<tr><td colspan="4" class="py-8 text-center text-rose-400">Failed to load analytics: ${err.message}</td></tr>`;
+    }
+  }
+
+  // Initial load
+  loadUsage();
+</script>
+{% endblock %}
