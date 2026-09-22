@@ -22,7 +22,7 @@ RUN python3 -c "from fastembed import TextEmbedding; TextEmbedding('sentence-tra
 # Copy application source code
 COPY app/ ./app/
 COPY templates/ ./templates/
-COPY static/ ./static/
+RUN mkdir -p static
 
 EXPOSE 8000
 
