@@ -151,7 +151,7 @@ export const Documents: React.FC = () => {
               ref={fileInputRef}
               onChange={(e) => handleFileUpload(e.target.files)}
               className="hidden"
-              accept=".pdf,.txt,.md,.docx"
+              accept=".pdf,.docx,.xlsx,.xls,.pptx,.csv,.txt,.md,.json,.html,.htm"
             />
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all mb-3">
               <UploadCloud className="h-6 w-6" />
@@ -160,13 +160,16 @@ export const Documents: React.FC = () => {
               {uploading ? 'Processing & Embedding Document...' : 'Upload Workspace Documents'}
             </h3>
             <p className="text-xs text-slate-400 mt-1 max-w-md">
-              Drag and drop your PDF, Markdown, or text files here, or click to browse. Files are
-              automatically chunked and indexed via FastEmbed 384-dim vectors.
+              Drag and drop your files here or click to browse. Supports Word docs, spreadsheets, slides, PDFs, and code data up to 15MB.
             </p>
-            <div className="mt-3 flex items-center gap-2 text-[10px] text-slate-500 font-mono">
+            <div className="mt-3 flex flex-wrap justify-center items-center gap-1.5 text-[10px] text-slate-400 font-mono">
               <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">PDF</span>
-              <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">TXT</span>
-              <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">MD</span>
+              <span className="px-2 py-0.5 rounded bg-indigo-950/60 text-indigo-300 border border-indigo-800/50 font-semibold">DOCX</span>
+              <span className="px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-800/50 font-semibold">XLSX</span>
+              <span className="px-2 py-0.5 rounded bg-amber-950/60 text-amber-300 border border-amber-800/50 font-semibold">PPTX</span>
+              <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">CSV</span>
+              <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">TXT/MD</span>
+              <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700">JSON</span>
             </div>
           </div>
 
