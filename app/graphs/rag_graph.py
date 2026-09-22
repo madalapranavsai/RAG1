@@ -1,12 +1,22 @@
 import re
 import json
-from typing import List, Dict, Any, TypedDict, Optional
+from typing import List, Dict, Any, Optional
+from typing_extensions import TypedDict
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
 from app.core.supabase import get_admin_client
 from app.services.embeddings import generate_embedding
 from app.services.llm import get_gemini_llm
+
+def _extract_str(val: Any) -> str:
+    """Safely extracts text content from LLM response which could be str, list of parts, or object."""
+    if isinstance(val, str):
+        return val
+    if isinstance(val, list):
+        return "\n".join(str(p) for p in val)
+    return str(val) if val is not None else ""
+
 
 class RAGState(TypedDict, total=False):
     chat_id: str
@@ -58,7 +68,8 @@ Follow-up User Query:
 
 Standalone Search Query:"""
             res = llm.invoke([HumanMessage(content=prompt)])
-            reformulated = res.content.strip().strip('"') if hasattr(res, "content") else query
+            raw_content = _extract_str(getattr(res, "content", res))
+            reformulated = raw_content.strip().strip('"')
             if reformulated and len(reformulated) > 2:
                 return {"search_query": reformulated, "rewrite_count": 0}
         except Exception:
@@ -166,7 +177,7 @@ Only return valid JSON."""
     try:
         llm = get_gemini_llm()
         eval_resp = llm.invoke([HumanMessage(content=prompt)])
-        eval_content = eval_resp.content if hasattr(eval_resp, "content") else str(eval_resp)
+        eval_content = _extract_str(getattr(eval_resp, "content", eval_resp))
         match = re.search(r"\{[\s\S]*\}", eval_content)
         if match:
             parsed = json.loads(match.group(0), strict=False)
@@ -208,7 +219,8 @@ def transform_query_node(state: RAGState) -> Dict[str, Any]:
 Please formulate a broader, more general technical search query that captures the core concepts using synonyms or alternative terms.
 Output ONLY the new query string on a single line."""
         res = llm.invoke([HumanMessage(content=prompt)])
-        expanded = res.content.strip().strip('"') if hasattr(res, "content") else search_query
+        raw_res = _extract_str(getattr(res, "content", res))
+        expanded = raw_res.strip().strip('"')
     except Exception:
         expanded = search_query
 
@@ -308,7 +320,7 @@ Follow-up Questions:
 2. [Second Question]
 """
 
-    messages = [SystemMessage(content=system_prompt)]
+    messages: List[Any] = [SystemMessage(content=system_prompt)]
     for msg in history:
         role = msg.get("role")
         content = msg.get("content", "")
@@ -321,7 +333,7 @@ Follow-up Questions:
 
     llm = get_gemini_llm()
     ai_response = llm.invoke(messages)
-    content = ai_response.content if hasattr(ai_response, "content") else str(ai_response)
+    content = _extract_str(getattr(ai_response, "content", ai_response))
 
     # Extract follow-up questions if formatted
     follow_ups = []
@@ -422,7 +434,7 @@ def create_rag_graph():
     """
     Builds and compiles the Corrective RAG (CRAG) LangGraph StateGraph workflow.
     """
-    builder = StateGraph(RAGState)
+    builder: Any = StateGraph(RAGState)
 
     builder.add_node("rewrite_query", rewrite_query_node)
     builder.add_node("retrieve", retrieve_node)

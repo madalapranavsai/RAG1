@@ -2,7 +2,3 @@
 name = "documind"
 version = "1.0.0"
 requires-python = ">=3.12"
-
-[tool.pyrefly]
-python-path = ".venv/bin/python"
-site-packages = ".venv/lib/python3.12/site-packages"
