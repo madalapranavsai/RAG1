@@ -99,31 +99,35 @@ def retrieve_node(state: RAGState) -> Dict[str, Any]:
         "filter_workspace_id": workspace_id
     }).execute()
 
-    matches = rpc_resp.data or []
+    raw_matches = rpc_resp.data if isinstance(rpc_resp.data, list) else []
+    matches: List[Dict[str, Any]] = [m for m in raw_matches if isinstance(m, dict)]
     if not matches:
         return {"retrieved_chunks": [], "retrieved_chunk_ids": []}
 
     # Fetch document titles
-    doc_ids = list(set(m["document_id"] for m in matches if "document_id" in m))
-    title_map = {}
+    doc_ids = list(set(str(m["document_id"]) for m in matches if "document_id" in m and m.get("document_id")))
+    title_map: Dict[str, str] = {}
     if doc_ids:
         docs_resp = supabase.table("documents").select("id, title").in_("id", doc_ids).execute()
-        if docs_resp.data:
-            title_map = {d["id"]: d["title"] for d in docs_resp.data}
+        raw_docs = docs_resp.data if isinstance(docs_resp.data, list) else []
+        for d in raw_docs:
+            if isinstance(d, dict) and "id" in d and "title" in d:
+                title_map[str(d["id"])] = str(d["title"])
 
-    retrieved = []
-    chunk_ids = []
+    retrieved: List[Dict[str, Any]] = []
+    chunk_ids: List[str] = []
     for m in matches:
-        chunk_id = m.get("id")
+        chunk_id = str(m.get("id")) if m.get("id") else None
         if chunk_id:
             chunk_ids.append(chunk_id)
+        doc_id = str(m.get("document_id")) if m.get("document_id") else None
         retrieved.append({
             "id": chunk_id,
-            "document_id": m.get("document_id"),
-            "document_title": title_map.get(m.get("document_id"), "Unknown Document"),
-            "content": m.get("content", ""),
+            "document_id": doc_id,
+            "document_title": title_map.get(doc_id or "", "Unknown Document"),
+            "content": str(m.get("content", "")),
             "source_page": m.get("source_page"),
-            "similarity": m.get("similarity", 0.0)
+            "similarity": float(m.get("similarity", 0.0) or 0.0)
         })
 
     return {
@@ -404,7 +408,8 @@ def track_and_save_node(state: RAGState) -> Dict[str, Any]:
 
     # Update chat title if it is still 'New Chat'
     chat_resp = supabase.table("chats").select("title").eq("id", chat_id).single().execute()
-    if chat_resp.data and chat_resp.data.get("title") == "New Chat":
+    chat_data = chat_resp.data if isinstance(chat_resp.data, dict) else {}
+    if chat_data.get("title") == "New Chat":
         query = state.get("query", "")
         title = (query[:37] + "...") if len(query) > 40 else query
         supabase.table("chats").update({"title": title}).eq("id", chat_id).execute()

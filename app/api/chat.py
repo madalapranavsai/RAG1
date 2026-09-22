@@ -60,39 +60,49 @@ async def get_chat_messages(chat_id: str, user: dict = Depends(get_current_user)
     supabase = get_admin_client()
 
     resp = supabase.table("chat_messages").select("*").eq("chat_id", chat_id).eq("workspace_id", workspace_id).order("created_at", desc=False).execute()
-    messages = resp.data or []
+    raw_messages = resp.data if isinstance(resp.data, list) else []
+    messages: List[Dict[str, Any]] = [m for m in raw_messages if isinstance(m, dict)]
 
     # Collect all retrieved chunk IDs to enrich with document titles if needed
-    all_chunk_ids = []
+    all_chunk_ids: List[str] = []
     for m in messages:
-        if m.get("retrieved_chunk_ids"):
-            all_chunk_ids.extend(m["retrieved_chunk_ids"])
+        cids = m.get("retrieved_chunk_ids")
+        if isinstance(cids, list):
+            all_chunk_ids.extend([str(c) for c in cids])
 
-    chunk_map = {}
+    chunk_map: Dict[str, Dict[str, Any]] = {}
     if all_chunk_ids:
         chunks_resp = supabase.table("document_chunks").select("id, document_id, content, source_page, documents(title)").in_("id", list(set(all_chunk_ids))).execute()
-        for c in (chunks_resp.data or []):
-            chunk_map[c["id"]] = {
-                "id": c["id"],
-                "document_title": (c.get("documents") or {}).get("title", "Document"),
-                "content": c.get("content", ""),
-                "source_page": c.get("source_page")
-            }
+        raw_chunks = chunks_resp.data if isinstance(chunks_resp.data, list) else []
+        for c in raw_chunks:
+            if isinstance(c, dict) and "id" in c:
+                doc_info = c.get("documents")
+                doc_title = doc_info.get("title", "Document") if isinstance(doc_info, dict) else "Document"
+                cid_str = str(c["id"])
+                chunk_map[cid_str] = {
+                    "id": cid_str,
+                    "document_title": doc_title,
+                    "content": str(c.get("content", "")),
+                    "source_page": c.get("source_page")
+                }
 
     # Enrich messages with citation details and A2UI payload
     import re, json
-    enriched_messages = []
+    enriched_messages: List[Dict[str, Any]] = []
     for m in messages:
         citations = []
-        for cid in (m.get("retrieved_chunk_ids") or []):
-            if cid in chunk_map:
-                citations.append(chunk_map[cid])
-        m_copy = dict(m)
+        raw_cids = m.get("retrieved_chunk_ids")
+        if isinstance(raw_cids, list):
+            for cid in raw_cids:
+                cid_str = str(cid)
+                if cid_str in chunk_map:
+                    citations.append(chunk_map[cid_str])
+        m_copy: Dict[str, Any] = dict(m)
         m_copy["citations"] = citations
 
         # Parse A2UI if contained in content
         a2ui_payload = None
-        content = m.get("content", "")
+        content = str(m.get("content", ""))
         a2ui_match = re.search(r"```a2ui\s*([\s\S]*?)\s*```", content)
         if a2ui_match:
             try:
@@ -142,11 +152,14 @@ async def send_message(
 
     # 2. Retrieve past messages for conversation context
     history_resp = supabase.table("chat_messages").select("role, content").eq("chat_id", chat_id).order("created_at", desc=False).limit(15).execute()
-    history = [
-        {"role": h["role"], "content": h["content"]}
-        for h in (history_resp.data or [])
-        if h["content"] != content
-    ]
+    raw_history = history_resp.data if isinstance(history_resp.data, list) else []
+    history: List[Dict[str, str]] = []
+    for h in raw_history:
+        if isinstance(h, dict) and h.get("content") != content:
+            history.append({
+                "role": str(h.get("role", "user")),
+                "content": str(h.get("content", ""))
+            })
 
     # 3. Execute LangGraph RAG Workflow
     initial_state = {
