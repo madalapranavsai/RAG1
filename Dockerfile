@@ -12,6 +12,7 @@ FROM python:3.12-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
     PORT=8000
 
 WORKDIR /app
@@ -28,8 +29,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Pre-download the FastEmbed MiniLM model inside the container image for fast cold starts
 RUN python3 -c "from fastembed import TextEmbedding; TextEmbedding('sentence-transformers/all-MiniLM-L6-v2')"
 
-# Copy application source code
+# Copy application source code and evaluation benchmark
 COPY app/ ./app/
+COPY evals/ ./evals/
 COPY templates/ ./templates/
 RUN mkdir -p static
 

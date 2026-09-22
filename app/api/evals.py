@@ -1,8 +1,19 @@
+import sys
 import json
 import asyncio
 from pathlib import Path
 from fastapi import APIRouter, HTTPException, BackgroundTasks
-from evals.run_eval import run_evaluation, DEFAULT_DATASET, REPORTS_DIR
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+try:
+    from evals.run_eval import run_evaluation, DEFAULT_DATASET, REPORTS_DIR
+except ImportError:
+    run_evaluation = None
+    DEFAULT_DATASET = PROJECT_ROOT / "evals" / "benchmark_dataset.json"
+    REPORTS_DIR = PROJECT_ROOT / "evals" / "reports"
 
 router = APIRouter(prefix="/api/evals", tags=["evals"])
 
@@ -42,7 +53,8 @@ async def _run_eval_background(sample_size: int = 5):
     global eval_running
     eval_running = True
     try:
-        await run_evaluation(DEFAULT_DATASET, sample_size=sample_size, fail_under=0.75)
+        if run_evaluation:
+            await run_evaluation(DEFAULT_DATASET, sample_size=sample_size, fail_under=0.75)
     finally:
         eval_running = False
 
