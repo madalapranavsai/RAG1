@@ -127,15 +127,29 @@ async def run_evaluation(dataset_path: Path, sample_size: int = None, fail_under
     results: List[Dict[str, Any]] = []
     for idx, item in enumerate(data, 1):
         print(f"[{idx}/{len(data)}] Evaluating '{item.get('id')}' ({item.get('category')})...", end="", flush=True)
-        try:
-            sample_eval = await evaluate_single_sample(item)
+        sample_eval = None
+        for attempt in range(3):
+            try:
+                sample_eval = await evaluate_single_sample(item)
+                break
+            except Exception as e:
+                err_str = str(e)
+                if ("429" in err_str or "RESOURCE_EXHAUSTED" in err_str) and attempt < 2:
+                    delay_match = re.search(r"retryDelay': '(\d+)s'", err_str) or re.search(r"retry in ([\d\.]+)s", err_str)
+                    wait_sec = float(delay_match.group(1)) if delay_match else (12 * (attempt + 1))
+                    print(f" [Quota limit, waiting {int(wait_sec)+1}s...]", end="", flush=True)
+                    await asyncio.sleep(wait_sec + 1.5)
+                else:
+                    print(f" FAILED! {e}")
+                    break
+
+        if sample_eval:
             results.append(sample_eval)
             s = sample_eval["scores"]
             print(f" Done! Faithfulness: {s['faithfulness']:.2f} | Relevance: {s['answer_relevance']:.2f} | Latency: {sample_eval['latency_ms']}ms")
-        except Exception as e:
-            print(f" FAILED! {e}")
+
         # Brief pause between samples to respect free-tier RPM limits
-        await asyncio.sleep(1.5)
+        await asyncio.sleep(2.0)
 
     # Compute aggregates
     total = len(results)
