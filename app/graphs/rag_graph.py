@@ -434,7 +434,7 @@ def create_rag_graph():
     """
     Builds and compiles the Corrective RAG (CRAG) LangGraph StateGraph workflow.
     """
-    builder: Any = StateGraph(RAGState)
+    builder: Any = StateGraph(RAGState)  # type: ignore
 
     builder.add_node("rewrite_query", rewrite_query_node)
     builder.add_node("retrieve", retrieve_node)

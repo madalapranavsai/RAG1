@@ -1,11 +1,12 @@
 import os
+import re
 import sys
 import json
 import time
 import argparse
 import asyncio
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 # Ensure parent directory is in sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -44,7 +45,7 @@ async def evaluate_single_sample(item: Dict[str, Any]) -> Dict[str, Any]:
         {"id": f"mock-{i}", "content": doc, "similarity": 0.88}
         for i, doc in enumerate(context_docs)
     ]
-    state: RAGState = {
+    state: Dict[str, Any] = {
         "query": question,
         "chat_history": history,
         "retrieved_chunks": chunks,
@@ -109,7 +110,7 @@ async def evaluate_single_sample(item: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-async def run_evaluation(dataset_path: Path, sample_size: int = None, fail_under: float = 0.75):
+async def run_evaluation(dataset_path: Path, sample_size: Optional[int] = None, fail_under: float = 0.75):
     """Executes the evaluation suite across the golden dataset and writes report."""
     print(f"\n========================================================")
     print(f"  DocuMind Production CI RAG Triad Evaluator")
