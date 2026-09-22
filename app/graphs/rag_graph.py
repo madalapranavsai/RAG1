@@ -18,6 +18,7 @@ class RAGState(TypedDict, total=False):
     context_text: str
     response_text: str
     follow_up_questions: List[str]
+    a2ui_payload: Dict[str, Any]
     prompt_tokens: int
     completion_tokens: int
 
@@ -101,19 +102,38 @@ def generate_node(state: RAGState) -> Dict[str, Any]:
     history = state.get("chat_history", [])
 
     a2ui_instructions = """
-If the answer naturally contains numerical metrics, structured data comparisons, workflow diagrams, process steps, or timelines, you MAY optionally include an interactive UI component block in your answer using the following exact format:
+### GENERATIVE A2UI & VISUAL CAPABILITIES:
+You are equipped with a real-time Generative UI system (A2UI) that dynamically renders:
+1. "mermaid": Flowcharts, registration procedures, architecture diagrams, decision trees, processes.
+2. "line_chart" & "bar_chart": Continuous curves, economic cost curves (TC, TVC, TFC, AC, MC), comparison graphs, trend charts.
+3. "table": Structured comparisons, data matrices, schedules.
+4. "timeline": Sequential chronological events, roadmaps, milestones.
+5. "metric_card": Key numbers and KPI metrics with trends.
+
+CRITICAL VISUALIZATION RULES:
+- Whenever the user asks for a flowchart, diagram, procedure, or sequence (e.g. patent registration procedure, circular flow):
+  You MUST include an ```a2ui block of type "mermaid" or a ```mermaid block.
+- Whenever the user asks for a graph, chart, curve, or visual plot (e.g. "tc and vc graph", "cost curves", "demand curve"):
+  NEVER refuse or claim you cannot generate graphs!
+  Use the conceptual formulas and principles explained in the Workspace Document Context (for example: TFC remains constant horizontally, TVC increases with output, TC = TFC + TVC) to construct representative data points and plot an interactive "line_chart" or "bar_chart" in an ```a2ui block!
+- Always output valid JSON in the ```a2ui block:
 ```a2ui
 {
-  "type": "metric_card" | "table" | "bar_chart" | "line_chart" | "mermaid" | "timeline",
+  "type": "mermaid" | "line_chart" | "bar_chart" | "table" | "timeline" | "metric_card",
   "title": "Descriptive Widget Title",
-  "metrics": [{"label": "Name", "value": "123", "change": "+5%", "trend": "up"}], // for metric_card
-  "headers": ["Col 1", "Col 2"], "rows": [["Val 1", "Val 2"]], // for table
-  "labels": ["Jan", "Feb"], "datasets": [{"label": "Series", "data": [10, 20]}], // for charts
-  "definition": "graph TD\\n  A-->B", // for mermaid
-  "events": [{"date": "2026", "title": "Event", "description": "Details"}] // for timeline
+  "definition": "graph LR\\n  A[Invention] --> B[Patent Search] ...",
+  "labels": ["0", "10", "20", "30", "40", "50"],
+  "datasets": [
+    {"label": "Total Fixed Cost (TFC)", "data": [50, 50, 50, 50, 50, 50]},
+    {"label": "Total Variable Cost (TVC)", "data": [0, 30, 55, 75, 105, 145]},
+    {"label": "Total Cost (TC = TFC + TVC)", "data": [50, 80, 105, 125, 155, 195]}
+  ],
+  "headers": ["Col 1", "Col 2"], "rows": [["A", "B"]],
+  "events": [{"date": "Step 1", "title": "...", "description": "..."}],
+  "metrics": [{"label": "...", "value": "...", "change": "...", "trend": "up"}]
 }
 ```
-Only output valid JSON within the ```a2ui block. Provide standard markdown explanation text along with the widget.
+Accompany the ```a2ui widget with markdown explanation text.
 """
 
     system_prompt = f"""You are DocuMind RAG, a professional AI workspace document assistant powered by Google Gemini.
@@ -159,9 +179,19 @@ Follow-up Questions:
     a2ui_match = re.search(r"```a2ui\s*([\s\S]*?)\s*```", content)
     if a2ui_match:
         try:
-            a2ui_payload = json.loads(a2ui_match.group(1).strip())
+            a2ui_payload = json.loads(a2ui_match.group(1).strip(), strict=False)
         except Exception:
             pass
+
+    # Fallback: Also detect standalone ```mermaid blocks
+    if not a2ui_payload:
+        mermaid_match = re.search(r"```mermaid\s*([\s\S]*?)\s*```", content)
+        if mermaid_match:
+            a2ui_payload = {
+                "type": "mermaid",
+                "title": "Process Flowchart",
+                "definition": mermaid_match.group(1).strip()
+            }
 
     # Usage metadata
     metadata = getattr(ai_response, "response_metadata", {})

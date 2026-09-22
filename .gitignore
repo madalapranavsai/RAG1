@@ -45,6 +45,7 @@ nosetests.xml
 .cache/
 .fastembed_cache/
 .huggingface/
+scratch/
 
 # Environment Variables & Secrets
 .env

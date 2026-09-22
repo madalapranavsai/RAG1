@@ -14,6 +14,7 @@ import {
 import { api } from '../api/client';
 import type { ChatSession, ChatMessage, A2UIPayload } from '../types';
 import { A2UIRenderer } from '../components/a2ui/A2UIRenderer';
+import { MermaidWidget } from '../components/a2ui/MermaidWidget';
 import { CitationCardWidget } from '../components/a2ui/CitationCardWidget';
 
 export const Chat: React.FC = () => {
@@ -290,17 +291,28 @@ export const Chat: React.FC = () => {
                           : 'glass-card border border-slate-800 text-slate-200 shadow-lg'
                       }`}
                     >
-                      {/* Markdown body (filtering out raw a2ui codeblock so clean widget takes its place) */}
+                      {/* Markdown body with dynamic A2UI & Mermaid block execution */}
                       <div className="prose prose-invert prose-xs max-w-none">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
                             code: ({ node, className, children, ...props }) => {
                               const match = /language-(\w+)/.exec(className || '');
-                              if (match && match[1] === 'a2ui') {
-                                // Suppress raw codeblock rendering since A2UIRenderer handles it
-                                return null;
+                              const lang = match ? match[1] : '';
+
+                              if (lang === 'a2ui') {
+                                try {
+                                  const parsed = JSON.parse(String(children).trim());
+                                  return <A2UIRenderer payload={parsed} />;
+                                } catch {
+                                  return null;
+                                }
                               }
+
+                              if (lang === 'mermaid') {
+                                return <MermaidWidget definition={String(children).trim()} />;
+                              }
+
                               return (
                                 <code className={className} {...props}>
                                   {children}
@@ -313,8 +325,12 @@ export const Chat: React.FC = () => {
                         </ReactMarkdown>
                       </div>
 
-                      {/* Generative A2UI Widget */}
-                      {msg.a2ui_payload && <A2UIRenderer payload={msg.a2ui_payload} />}
+                      {/* Generative A2UI Widget if not already inlined in the markdown */}
+                      {msg.a2ui_payload &&
+                        !msg.content.includes('```a2ui') &&
+                        !msg.content.includes('```mermaid') && (
+                          <A2UIRenderer payload={msg.a2ui_payload} />
+                        )}
 
                       {/* Grounded Citations Drawer */}
                       {msg.citations && msg.citations.length > 0 && (

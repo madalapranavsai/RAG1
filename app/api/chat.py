@@ -96,9 +96,17 @@ async def get_chat_messages(chat_id: str, user: dict = Depends(get_current_user)
         a2ui_match = re.search(r"```a2ui\s*([\s\S]*?)\s*```", content)
         if a2ui_match:
             try:
-                a2ui_payload = json.loads(a2ui_match.group(1).strip())
+                a2ui_payload = json.loads(a2ui_match.group(1).strip(), strict=False)
             except Exception:
                 pass
+        if not a2ui_payload:
+            mermaid_match = re.search(r"```mermaid\s*([\s\S]*?)\s*```", content)
+            if mermaid_match:
+                a2ui_payload = {
+                    "type": "mermaid",
+                    "title": "Process Flowchart",
+                    "definition": mermaid_match.group(1).strip()
+                }
         m_copy["a2ui_payload"] = a2ui_payload
         enriched_messages.append(m_copy)
 
