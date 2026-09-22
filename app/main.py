@@ -28,121 +28,99 @@ app.include_router(retrieval.router)
 app.include_router(chat.router)
 app.include_router(usage.router)
 
-def get_session_user(request: Request):
-    """
-    Extracts the user and active workspace details from the session cookie.
-    Returns None if unauthenticated.
-    """
-    token = request.cookies.get("sb_access_token")
-    if not token:
-        return None
+frontend_dist = "frontend/dist"
+if os.path.exists(frontend_dist):
+    assets_dir = os.path.join(frontend_dist, "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
 
-    try:
-        supabase = get_supabase_client(token)
-        user_resp = supabase.auth.get_user(token)
-        if not user_resp or not user_resp.user:
+    @app.get("/{full_path:path}", response_class=HTMLResponse)
+    async def serve_spa(request: Request, full_path: str):
+        if full_path.startswith("api/") or full_path in ("docs", "redoc", "openapi.json"):
+            return HTMLResponse(status_code=404)
+
+        potential_file = os.path.join(frontend_dist, full_path)
+        if full_path and os.path.isfile(potential_file):
+            from fastapi.responses import FileResponse
+            return FileResponse(potential_file)
+
+        from fastapi.responses import FileResponse
+        return FileResponse(os.path.join(frontend_dist, "index.html"))
+else:
+    def get_session_user(request: Request):
+        token = request.cookies.get("sb_access_token")
+        if not token:
+            return None
+        try:
+            supabase = get_supabase_client(token)
+            user_resp = supabase.auth.get_user(token)
+            if not user_resp or not user_resp.user:
+                return None
+            user = user_resp.user
+            admin = get_admin_client()
+            memberships_resp = admin.table("workspace_members").select(
+                "workspace_id, role, workspaces(id, name)"
+            ).eq("user_id", user.id).execute()
+            memberships = memberships_resp.data or []
+            primary = memberships[0] if memberships else None
+            return {
+                "id": user.id,
+                "email": user.email,
+                "workspace_id": primary.get("workspace_id") if primary else None,
+                "workspace_name": (primary.get("workspaces") or {}).get("name", "Personal Workspace") if primary else "Personal Workspace",
+                "role": primary.get("role", "member") if primary else "member"
+            }
+        except Exception:
             return None
 
-        user = user_resp.user
-        admin = get_admin_client()
-        memberships_resp = admin.table("workspace_members").select(
-            "workspace_id, role, workspaces(id, name)"
-        ).eq("user_id", user.id).execute()
-
-        memberships = memberships_resp.data or []
-        primary = memberships[0] if memberships else None
-
-        return {
-            "id": user.id,
-            "email": user.email,
-            "workspace_id": primary.get("workspace_id") if primary else None,
-            "workspace_name": (primary.get("workspaces") or {}).get("name", "Personal Workspace") if primary else "Personal Workspace",
-            "role": primary.get("role", "member") if primary else "member"
-        }
-    except Exception:
-        return None
-
-# Web UI Routes
-@app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
-    user = get_session_user(request)
-    if user:
-        return RedirectResponse("/dashboard")
-    return RedirectResponse("/login")
-
-@app.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
-    user = get_session_user(request)
-    if user:
-        return RedirectResponse("/dashboard")
-    return templates.TemplateResponse(request=request, name="login.html", context={"user": None})
-
-@app.get("/signup", response_class=HTMLResponse)
-async def signup_page(request: Request):
-    user = get_session_user(request)
-    if user:
-        return RedirectResponse("/dashboard")
-    return templates.TemplateResponse(request=request, name="signup.html", context={"user": None})
-
-@app.get("/dashboard", response_class=HTMLResponse)
-async def dashboard_page(request: Request):
-    user = get_session_user(request)
-    if not user:
+    @app.get("/", response_class=HTMLResponse)
+    async def index(request: Request):
+        user = get_session_user(request)
+        if user:
+            return RedirectResponse("/dashboard")
         return RedirectResponse("/login")
 
-    stats = {"documents": 0, "chunks": 0, "tokens": 0}
-    try:
-        admin = get_admin_client()
-        w_id = user.get("workspace_id")
-        if w_id:
-            d_resp = admin.table("documents").select("id", count="exact").eq("workspace_id", w_id).execute()
-            c_resp = admin.table("document_chunks").select("id", count="exact").eq("workspace_id", w_id).execute()
-            u_resp = admin.table("usage_events").select("quantity").eq("workspace_id", w_id).eq("event_type", "token_used").execute()
+    @app.get("/login", response_class=HTMLResponse)
+    async def login_page(request: Request):
+        user = get_session_user(request)
+        if user:
+            return RedirectResponse("/dashboard")
+        return templates.TemplateResponse(request=request, name="login.html", context={"user": None})
 
-            stats["documents"] = d_resp.count or len(d_resp.data or [])
-            stats["chunks"] = c_resp.count or len(c_resp.data or [])
-            stats["tokens"] = sum(e["quantity"] for e in (u_resp.data or []))
-    except Exception as e:
-        print(f"Error fetching dashboard stats: {e}")
+    @app.get("/signup", response_class=HTMLResponse)
+    async def signup_page(request: Request):
+        user = get_session_user(request)
+        if user:
+            return RedirectResponse("/dashboard")
+        return templates.TemplateResponse(request=request, name="signup.html", context={"user": None})
 
-    return templates.TemplateResponse(
-        request=request,
-        name="dashboard.html",
-        context={"user": user, "active_page": "dashboard", "stats": stats}
-    )
+    @app.get("/dashboard", response_class=HTMLResponse)
+    async def dashboard_page(request: Request):
+        user = get_session_user(request)
+        if not user:
+            return RedirectResponse("/login")
+        return templates.TemplateResponse(request=request, name="dashboard.html", context={"user": user, "active_page": "dashboard", "stats": {"documents": 0, "chunks": 0, "tokens": 0}})
 
-@app.get("/documents", response_class=HTMLResponse)
-async def documents_page(request: Request):
-    user = get_session_user(request)
-    if not user:
-        return RedirectResponse("/login")
-    return templates.TemplateResponse(
-        request=request,
-        name="documents.html",
-        context={"user": user, "active_page": "documents"}
-    )
+    @app.get("/documents", response_class=HTMLResponse)
+    async def documents_page(request: Request):
+        user = get_session_user(request)
+        if not user:
+            return RedirectResponse("/login")
+        return templates.TemplateResponse(request=request, name="documents.html", context={"user": user, "active_page": "documents"})
 
-@app.get("/chat", response_class=HTMLResponse)
-async def chat_page(request: Request):
-    user = get_session_user(request)
-    if not user:
-        return RedirectResponse("/login")
-    return templates.TemplateResponse(
-        request=request,
-        name="chat.html",
-        context={"user": user, "active_page": "chat"}
-    )
+    @app.get("/chat", response_class=HTMLResponse)
+    async def chat_page(request: Request):
+        user = get_session_user(request)
+        if not user:
+            return RedirectResponse("/login")
+        return templates.TemplateResponse(request=request, name="chat.html", context={"user": user, "active_page": "chat"})
 
-@app.get("/usage", response_class=HTMLResponse)
-async def usage_page(request: Request):
-    user = get_session_user(request)
-    if not user:
-        return RedirectResponse("/login")
-    return templates.TemplateResponse(
-        request=request,
-        name="usage.html",
-        context={"user": user, "active_page": "usage"}
-    )
+    @app.get("/usage", response_class=HTMLResponse)
+    async def usage_page(request: Request):
+        user = get_session_user(request)
+        if not user:
+            return RedirectResponse("/login")
+        return templates.TemplateResponse(request=request, name="usage.html", context={"user": user, "active_page": "usage"})
 
 if __name__ == "__main__":
     import uvicorn

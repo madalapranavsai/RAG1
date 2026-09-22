@@ -100,13 +100,29 @@ def generate_node(state: RAGState) -> Dict[str, Any]:
     query = state.get("query", "")
     history = state.get("chat_history", [])
 
+    a2ui_instructions = """
+If the answer naturally contains numerical metrics, structured data comparisons, workflow diagrams, process steps, or timelines, you MAY optionally include an interactive UI component block in your answer using the following exact format:
+```a2ui
+{
+  "type": "metric_card" | "table" | "bar_chart" | "line_chart" | "mermaid" | "timeline",
+  "title": "Descriptive Widget Title",
+  "metrics": [{"label": "Name", "value": "123", "change": "+5%", "trend": "up"}], // for metric_card
+  "headers": ["Col 1", "Col 2"], "rows": [["Val 1", "Val 2"]], // for table
+  "labels": ["Jan", "Feb"], "datasets": [{"label": "Series", "data": [10, 20]}], // for charts
+  "definition": "graph TD\\n  A-->B", // for mermaid
+  "events": [{"date": "2026", "title": "Event", "description": "Details"}] // for timeline
+}
+```
+Only output valid JSON within the ```a2ui block. Provide standard markdown explanation text along with the widget.
+"""
+
     system_prompt = f"""You are DocuMind RAG, a professional AI workspace document assistant powered by Google Gemini.
 You must answer questions strictly based on the provided Workspace Document Context.
 If the context does not contain sufficient information to answer the question, state that you do not know based on the uploaded workspace documents. Do not make up answers.
 
 Workspace Document Context:
 {context_text}
-
+{a2ui_instructions}
 At the very end of your response, on a new line, add exactly two concise suggested follow-up questions that the user might want to ask next based on this conversation. Format it exactly as:
 Follow-up Questions:
 1. [First Question]
@@ -134,9 +150,18 @@ Follow-up Questions:
     if follow_up_match:
         q1 = follow_up_match.group(1).strip()
         q2 = follow_up_match.group(2).strip()
-        # Clean potential extra lines
         q2 = q2.split("\n")[0].strip()
         follow_ups = [q1, q2]
+
+    # Extract A2UI payload if present
+    import json
+    a2ui_payload = None
+    a2ui_match = re.search(r"```a2ui\s*([\s\S]*?)\s*```", content)
+    if a2ui_match:
+        try:
+            a2ui_payload = json.loads(a2ui_match.group(1).strip())
+        except Exception:
+            pass
 
     # Usage metadata
     metadata = getattr(ai_response, "response_metadata", {})
@@ -147,6 +172,7 @@ Follow-up Questions:
     return {
         "response_text": content,
         "follow_up_questions": follow_ups,
+        "a2ui_payload": a2ui_payload,
         "prompt_tokens": prompt_tokens,
         "completion_tokens": completion_tokens
     }

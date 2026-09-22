@@ -79,7 +79,8 @@ async def get_chat_messages(chat_id: str, user: dict = Depends(get_current_user)
                 "source_page": c.get("source_page")
             }
 
-    # Enrich messages with citation details
+    # Enrich messages with citation details and A2UI payload
+    import re, json
     enriched_messages = []
     for m in messages:
         citations = []
@@ -88,6 +89,17 @@ async def get_chat_messages(chat_id: str, user: dict = Depends(get_current_user)
                 citations.append(chunk_map[cid])
         m_copy = dict(m)
         m_copy["citations"] = citations
+
+        # Parse A2UI if contained in content
+        a2ui_payload = None
+        content = m.get("content", "")
+        a2ui_match = re.search(r"```a2ui\s*([\s\S]*?)\s*```", content)
+        if a2ui_match:
+            try:
+                a2ui_payload = json.loads(a2ui_match.group(1).strip())
+            except Exception:
+                pass
+        m_copy["a2ui_payload"] = a2ui_payload
         enriched_messages.append(m_copy)
 
     return {"messages": enriched_messages}
@@ -144,7 +156,8 @@ async def send_message(
             "success": True,
             "response": final_state.get("response_text", ""),
             "citations": final_state.get("retrieved_chunks", []),
-            "follow_up_questions": final_state.get("follow_up_questions", [])
+            "follow_up_questions": final_state.get("follow_up_questions", []),
+            "a2ui_payload": final_state.get("a2ui_payload")
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"LangGraph execution error: {str(e)}")

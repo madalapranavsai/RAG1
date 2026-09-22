@@ -68,9 +68,10 @@ Thumbs.db
 *.swp
 *.swo
 
-# Node / Next.js Legacy (if present)
-/node_modules
-/.pnp
+# Node / Frontend
+node_modules/
+**/node_modules/
+frontend/dist/
 .pnp.*
 /.next/
 /out/
