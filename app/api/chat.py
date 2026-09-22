@@ -163,9 +163,10 @@ async def send_message(
         return {
             "success": True,
             "response": final_state.get("response_text", ""),
-            "citations": final_state.get("retrieved_chunks", []),
+            "citations": final_state.get("filtered_chunks") if final_state.get("filtered_chunks") is not None else final_state.get("retrieved_chunks", []),
             "follow_up_questions": final_state.get("follow_up_questions", []),
-            "a2ui_payload": final_state.get("a2ui_payload")
+            "a2ui_payload": final_state.get("a2ui_payload"),
+            "crag_status": final_state.get("crag_status")
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"LangGraph execution error: {str(e)}")

@@ -10,6 +10,7 @@ import {
   User,
   Sparkles,
   ChevronRight,
+  Search,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type { ChatSession, ChatMessage, A2UIPayload } from '../types';
@@ -132,6 +133,7 @@ export const Chat: React.FC = () => {
         citations: res.citations || [],
         follow_up_questions: res.follow_up_questions || [],
         a2ui_payload: res.a2ui_payload as A2UIPayload | null,
+        crag_status: (res as any).crag_status || null,
         created_at: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, assistantMsg]);
@@ -291,6 +293,16 @@ export const Chat: React.FC = () => {
                           : 'glass-card border border-slate-800 text-slate-200 shadow-lg'
                       }`}
                     >
+                      {/* CRAG Query Rewriting Badge */}
+                      {msg.crag_status && msg.crag_status.rewritten && (
+                        <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 text-[10px] text-indigo-300">
+                          <Search className="w-3 h-3 text-indigo-400 shrink-0" />
+                          <span>
+                            CRAG optimized: <strong className="text-white">"{msg.crag_status.search_query}"</strong>
+                          </span>
+                        </div>
+                      )}
+
                       {/* Markdown body with dynamic A2UI & Mermaid block execution */}
                       <div className="prose prose-invert prose-xs max-w-none">
                         <ReactMarkdown

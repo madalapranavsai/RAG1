@@ -1,5 +1,6 @@
 import re
-from typing import List, Dict, Any, TypedDict
+import json
+from typing import List, Dict, Any, TypedDict, Optional
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
@@ -12,9 +13,14 @@ class RAGState(TypedDict, total=False):
     workspace_id: str
     user_id: str
     query: str
+    search_query: str
     chat_history: List[Dict[str, str]]
     retrieved_chunks: List[Dict[str, Any]]
     retrieved_chunk_ids: List[str]
+    filtered_chunks: List[Dict[str, Any]]
+    retrieval_grade: str
+    rewrite_count: int
+    crag_status: Dict[str, Any]
     context_text: str
     response_text: str
     follow_up_questions: List[str]
@@ -22,25 +28,63 @@ class RAGState(TypedDict, total=False):
     prompt_tokens: int
     completion_tokens: int
 
-def retrieve_node(state: RAGState) -> Dict[str, Any]:
+def rewrite_query_node(state: RAGState) -> Dict[str, Any]:
     """
-    Node: Generates query embedding and runs similarity search
-    scoped strictly to the user's active workspace.
+    CRAG Node 1: Conversational Query Rewriting.
+    If chat history exists, reformulates follow-up queries or anaphora (it, they, that)
+    into a standalone, search-optimized semantic query.
     """
     query = state.get("query", "").strip()
+    history = state.get("chat_history", [])
+
+    if not history or len(history) == 0:
+        return {"search_query": query, "rewrite_count": 0}
+
+    # If query is very short or contains conversational pronouns, ask Gemini to disambiguate
+    pronoun_check = bool(re.search(r"\b(it|its|this|that|these|those|they|them|previous|former|latter|again)\b", query, re.I))
+    if len(query.split()) < 4 or pronoun_check:
+        try:
+            llm = get_gemini_llm()
+            history_context = "\n".join([f"{h.get('role', 'user')}: {h.get('content', '')}" for h in history[-4:]])
+            prompt = f"""You are an expert query reformulation assistant for a document retrieval system.
+Given the previous chat conversation and a follow-up user query, rephrase the follow-up query to be a completely standalone, search-optimized query.
+Do NOT answer the question. Only output the reformulated search query as a single concise line.
+
+Chat History:
+{history_context}
+
+Follow-up User Query:
+{query}
+
+Standalone Search Query:"""
+            res = llm.invoke([HumanMessage(content=prompt)])
+            reformulated = res.content.strip().strip('"') if hasattr(res, "content") else query
+            if reformulated and len(reformulated) > 2:
+                return {"search_query": reformulated, "rewrite_count": 0}
+        except Exception:
+            pass
+
+    return {"search_query": query, "rewrite_count": 0}
+
+def retrieve_node(state: RAGState) -> Dict[str, Any]:
+    """
+    CRAG Node 2: Vector Retrieval.
+    Generates embedding for search_query and runs similarity search scoped to workspace.
+    """
+    search_query = state.get("search_query") or state.get("query", "").strip()
     workspace_id = state.get("workspace_id")
     supabase = get_admin_client()
 
-    if not query or not workspace_id:
+    if not search_query or not workspace_id:
         return {"retrieved_chunks": [], "retrieved_chunk_ids": []}
 
-    query_embedding = generate_embedding(query)
+    query_embedding = generate_embedding(search_query)
 
     # Call match_chunks RPC
     rpc_resp = supabase.rpc("match_chunks", {
         "query_embedding": query_embedding,
         "match_threshold": 0.15,
-        "match_count": 4,
+        "match_count": 5,
         "filter_workspace_id": workspace_id
     }).execute()
 
@@ -76,11 +120,126 @@ def retrieve_node(state: RAGState) -> Dict[str, Any]:
         "retrieved_chunk_ids": chunk_ids
     }
 
-def format_context_node(state: RAGState) -> Dict[str, Any]:
+def grade_documents_node(state: RAGState) -> Dict[str, Any]:
     """
-    Node: Assembles retrieved chunks into a clean context block.
+    CRAG Node 3: Document Relevance Grader.
+    Assesses retrieved chunks against the search query to filter out irrelevant noise.
     """
     chunks = state.get("retrieved_chunks", [])
+    search_query = state.get("search_query") or state.get("query", "")
+
+    if not chunks:
+        return {
+            "filtered_chunks": [],
+            "retrieval_grade": "not_relevant",
+            "crag_status": {
+                "search_query": search_query,
+                "rewritten": search_query != state.get("query"),
+                "chunks_retrieved": 0,
+                "chunks_retained": 0,
+                "grade": "not_relevant"
+            }
+        }
+
+    # Format chunks for evaluation
+    chunk_summaries = []
+    for idx, c in enumerate(chunks):
+        snippet = (c.get("content", "")[:250]).replace("\n", " ")
+        chunk_summaries.append(f"[{c.get('id')}] (Doc: {c.get('document_title')}): {snippet}")
+
+    chunks_text = "\n".join(chunk_summaries)
+
+    prompt = f"""You are a strict retrieval relevance evaluator.
+Assess whether each retrieved document chunk contains information, definitions, or context relevant to answering the query.
+
+User Query: {search_query}
+
+Retrieved Chunks:
+{chunks_text}
+
+Output JSON containing the list of relevant chunk IDs:
+{{"relevant_ids": ["id1", "id2"]}}
+If none are relevant, output: {{"relevant_ids": []}}
+Only return valid JSON."""
+
+    relevant_ids = set()
+    try:
+        llm = get_gemini_llm()
+        eval_resp = llm.invoke([HumanMessage(content=prompt)])
+        eval_content = eval_resp.content if hasattr(eval_resp, "content") else str(eval_resp)
+        match = re.search(r"\{[\s\S]*\}", eval_content)
+        if match:
+            parsed = json.loads(match.group(0), strict=False)
+            relevant_ids = set(parsed.get("relevant_ids", []))
+    except Exception:
+        # Fallback: keep all chunks if grading call encounters an error
+        relevant_ids = set(c["id"] for c in chunks if c.get("id"))
+
+    filtered = [c for c in chunks if c.get("id") in relevant_ids]
+    # If grading filtered everything out, keep top 1 if similarity > 0.40
+    if not filtered and chunks:
+        if chunks[0].get("similarity", 0) >= 0.40:
+            filtered = [chunks[0]]
+
+    grade = "relevant" if len(filtered) > 0 else "not_relevant"
+    return {
+        "filtered_chunks": filtered,
+        "retrieval_grade": grade,
+        "crag_status": {
+            "search_query": search_query,
+            "rewritten": search_query != state.get("query"),
+            "chunks_retrieved": len(chunks),
+            "chunks_retained": len(filtered),
+            "grade": grade
+        }
+    }
+
+def transform_query_node(state: RAGState) -> Dict[str, Any]:
+    """
+    CRAG Node 4: Query Transformation.
+    If initial retrieval found no relevant chunks, reformulates keywords with broader terms.
+    """
+    search_query = state.get("search_query") or state.get("query", "")
+    rewrite_count = state.get("rewrite_count", 0) + 1
+
+    try:
+        llm = get_gemini_llm()
+        prompt = f"""The previous search query '{search_query}' retrieved zero relevant passages from the document repository.
+Please formulate a broader, more general technical search query that captures the core concepts using synonyms or alternative terms.
+Output ONLY the new query string on a single line."""
+        res = llm.invoke([HumanMessage(content=prompt)])
+        expanded = res.content.strip().strip('"') if hasattr(res, "content") else search_query
+    except Exception:
+        expanded = search_query
+
+    return {
+        "search_query": expanded,
+        "rewrite_count": rewrite_count
+    }
+
+def decide_to_generate(state: RAGState) -> str:
+    """
+    Conditional Edge: Decides whether to generate an answer or attempt query transformation.
+    """
+    filtered = state.get("filtered_chunks", [])
+    rewrite_count = state.get("rewrite_count", 0)
+
+    if filtered and len(filtered) > 0:
+        return "format_context"
+
+    if rewrite_count < 1:
+        return "transform_query"
+
+    return "format_context"
+
+def format_context_node(state: RAGState) -> Dict[str, Any]:
+    """
+    Node: Assembles verified chunks into a grounded context block.
+    """
+    chunks = state.get("filtered_chunks")
+    if chunks is None:
+        chunks = state.get("retrieved_chunks", [])
+
     if not chunks:
         context_text = "No relevant workspace documents found."
     else:
@@ -95,7 +254,7 @@ def format_context_node(state: RAGState) -> Dict[str, Any]:
 
 def generate_node(state: RAGState) -> Dict[str, Any]:
     """
-    Node: Calls Google Gemini with the grounded system prompt and chat history.
+    Node: Calls Google Gemini with the grounded system prompt, chat history, and A2UI directives.
     """
     context_text = state.get("context_text", "No relevant workspace documents found.")
     query = state.get("query", "")
@@ -174,7 +333,6 @@ Follow-up Questions:
         follow_ups = [q1, q2]
 
     # Extract A2UI payload if present
-    import json
     a2ui_payload = None
     a2ui_match = re.search(r"```a2ui\s*([\s\S]*?)\s*```", content)
     if a2ui_match:
@@ -262,17 +420,32 @@ def track_and_save_node(state: RAGState) -> Dict[str, Any]:
 
 def create_rag_graph():
     """
-    Builds and compiles the LangGraph StateGraph workflow for RAG.
+    Builds and compiles the Corrective RAG (CRAG) LangGraph StateGraph workflow.
     """
     builder = StateGraph(RAGState)
 
+    builder.add_node("rewrite_query", rewrite_query_node)
     builder.add_node("retrieve", retrieve_node)
+    builder.add_node("grade_documents", grade_documents_node)
+    builder.add_node("transform_query", transform_query_node)
     builder.add_node("format_context", format_context_node)
     builder.add_node("generate", generate_node)
     builder.add_node("track_and_save", track_and_save_node)
 
-    builder.set_entry_point("retrieve")
-    builder.add_edge("retrieve", "format_context")
+    builder.set_entry_point("rewrite_query")
+    builder.add_edge("rewrite_query", "retrieve")
+    builder.add_edge("retrieve", "grade_documents")
+
+    builder.add_conditional_edges(
+        "grade_documents",
+        decide_to_generate,
+        {
+            "format_context": "format_context",
+            "transform_query": "transform_query"
+        }
+    )
+
+    builder.add_edge("transform_query", "retrieve")
     builder.add_edge("format_context", "generate")
     builder.add_edge("generate", "track_and_save")
     builder.add_edge("track_and_save", END)

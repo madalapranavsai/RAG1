@@ -64,6 +64,14 @@ export interface A2UIPayload {
   }[];
 }
 
+export interface CragStatus {
+  search_query?: string;
+  rewritten?: boolean;
+  chunks_retrieved?: number;
+  chunks_retained?: number;
+  grade?: string;
+}
+
 export interface ChatMessage {
   id?: string;
   chat_id?: string;
@@ -73,6 +81,7 @@ export interface ChatMessage {
   a2ui_payload?: A2UIPayload | null;
   created_at?: string;
   follow_up_questions?: string[];
+  crag_status?: CragStatus | null;
 }
 
 export interface ChatSession {

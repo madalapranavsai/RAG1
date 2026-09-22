@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 
     # Google Gemini Settings
     GOOGLE_API_KEY: Optional[str] = os.getenv("GOOGLE_API_KEY", os.getenv("GEMINI_API_KEY", ""))
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash-lite")
 
     # Embeddings
     # 'local' uses FastEmbed / MiniLM (384 dim, 100% free), 'gemini' uses Google text-embedding-004 (768 dim)
