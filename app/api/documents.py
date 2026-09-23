@@ -27,7 +27,7 @@ EXTENSION_MIME_MAP = {
 @router.get("")
 async def list_documents(user: dict = Depends(get_current_user)):
     """
-    Lists all documents belonging to the user's active workspace.
+    Lists all documents belonging to the user's active workspace with chunk metrics.
     """
     workspace_id = user.get("workspace_id")
     if not workspace_id:
@@ -35,7 +35,25 @@ async def list_documents(user: dict = Depends(get_current_user)):
 
     supabase = get_admin_client()
     resp = supabase.table("documents").select("*").eq("workspace_id", workspace_id).order("created_at", desc=True).execute()
-    return {"documents": resp.data or []}
+    docs = resp.data or []
+
+    if docs:
+        doc_ids = [d["id"] for d in docs if d.get("id")]
+        # Count chunks per document in this workspace
+        try:
+            chunks_resp = supabase.table("document_chunks").select("document_id").in_("document_id", doc_ids).execute()
+            from collections import Counter
+            chunk_counts = Counter(r["document_id"] for r in (chunks_resp.data or []))
+        except Exception:
+            chunk_counts = {}
+
+        for doc in docs:
+            title = doc.get("title") or ""
+            ext = title.rsplit(".", 1)[-1].lower() if "." in title else "file"
+            doc["file_type"] = ext
+            doc["total_chunks"] = chunk_counts.get(doc["id"], 0)
+
+    return {"documents": docs}
 
 @router.post("/upload")
 async def upload_document(

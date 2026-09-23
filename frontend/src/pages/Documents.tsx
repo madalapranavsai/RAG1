@@ -99,15 +99,28 @@ export const Documents: React.FC = () => {
     }
   };
 
-  // Filtered documents for client-side search & filtering
-  const filteredDocuments = documents.filter((doc) => {
-    const matchesQuery = doc.title.toLowerCase().includes(docSearchQuery.toLowerCase());
-    const matchesType = docTypeFilter === 'all' || doc.file_type.toLowerCase() === docTypeFilter.toLowerCase();
+  // Filtered documents for client-side search & filtering with total null safety
+  const filteredDocuments = (documents || []).filter((doc) => {
+    if (!doc) return false;
+    const title = (doc.title || '').toLowerCase();
+    const query = (docSearchQuery || '').toLowerCase().trim();
+    const matchesQuery = !query || title.includes(query);
+    const fileType = (doc.file_type || (doc.title ? doc.title.split('.').pop() : '') || 'file').toLowerCase();
+    const matchesType = docTypeFilter === 'all' || fileType === docTypeFilter.toLowerCase();
     return matchesQuery && matchesType;
   });
 
-  const availableTypes = ['all', ...Array.from(new Set(documents.map((d) => d.file_type.toLowerCase()).filter(Boolean)))];
-  const totalChunksCount = documents.reduce((acc, d) => acc + (d.total_chunks || 0), 0);
+  const availableTypes = [
+    'all',
+    ...Array.from(
+      new Set(
+        (documents || [])
+          .map((d) => (d?.file_type || (d?.title ? d.title.split('.').pop() : '') || '').toLowerCase())
+          .filter(Boolean)
+      )
+    ),
+  ];
+  const totalChunksCount = (documents || []).reduce((acc, d) => acc + (d?.total_chunks || 0), 0);
 
   return (
     <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
@@ -288,44 +301,52 @@ export const Documents: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/80 text-slate-300">
-                    {filteredDocuments.map((doc) => (
-                      <tr key={doc.id} className="hover:bg-slate-900/50 transition-colors">
-                        <td className="px-5 py-3 font-medium text-white flex items-center gap-2">
-                          <FileText className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                          <span className="truncate max-w-xs">{doc.title}</span>
-                        </td>
-                        <td className="px-5 py-3 uppercase text-[11px] font-mono text-slate-400">
-                          {doc.file_type}
-                        </td>
-                        <td className="px-5 py-3 text-slate-400 font-mono num-tabular">
-                          {doc.file_size ? `${(doc.file_size / 1024).toFixed(1)} KB` : '-'}
-                        </td>
-                        <td className="px-5 py-3 font-mono">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 num-tabular">
-                            <Layers className="w-3 h-3 text-sky-400" />
-                            {doc.total_chunks}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3">
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                            {doc.status}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3 text-slate-500 text-[11px] font-mono">
-                          {new Date(doc.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-5 py-3 text-right">
-                          <button
-                            onClick={() => handleDelete(doc.id, doc.title)}
-                            title="Delete Document"
-                            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors interactive-press"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                    {filteredDocuments.map((doc) => {
+                      const displayTitle = doc?.title || 'Untitled Document';
+                      const displayType = (doc?.file_type || (doc?.title ? doc.title.split('.').pop() : '') || 'FILE').toUpperCase();
+                      const displayDate = doc?.created_at ? new Date(doc.created_at).toLocaleDateString() : '—';
+                      const displaySize = doc?.file_size ? `${(Number(doc.file_size) / 1024).toFixed(1)} KB` : '—';
+                      const chunkCount = doc?.total_chunks ?? 0;
+
+                      return (
+                        <tr key={doc.id} className="hover:bg-slate-900/50 transition-colors">
+                          <td className="px-5 py-3 font-medium text-white flex items-center gap-2">
+                            <FileText className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                            <span className="truncate max-w-xs">{displayTitle}</span>
+                          </td>
+                          <td className="px-5 py-3 uppercase text-[11px] font-mono text-slate-400">
+                            {displayType}
+                          </td>
+                          <td className="px-5 py-3 text-slate-400 font-mono num-tabular">
+                            {displaySize}
+                          </td>
+                          <td className="px-5 py-3 font-mono">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 num-tabular">
+                              <Layers className="w-3 h-3 text-sky-400" />
+                              {chunkCount}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                              {doc.status || 'indexed'}
+                            </span>
+                          </td>
+                          <td className="px-5 py-3 text-slate-500 text-[11px] font-mono">
+                            {displayDate}
+                          </td>
+                          <td className="px-5 py-3 text-right">
+                            <button
+                              onClick={() => handleDelete(doc.id, displayTitle)}
+                              title="Delete Document"
+                              className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors interactive-press"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
