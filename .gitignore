@@ -83,3 +83,11 @@ yarn-error.log*
 .vercel
 *.tsbuildinfo
 next-env.d.ts
+
+# AI Assistant Tooling & Skills
+.agent/
+.agents/
+.claude/
+.codex/
+.gemini/
+.opencode/

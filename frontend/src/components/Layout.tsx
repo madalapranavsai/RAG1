@@ -45,20 +45,20 @@ export const Layout: React.FC = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-800/80 bg-slate-900/90 backdrop-blur-xl transition-transform lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r border-slate-800/80 bg-slate-900/95 backdrop-blur-xl transition-transform lg:static lg:translate-x-0 ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Brand */}
         <div className="flex h-16 items-center justify-between px-5 border-b border-slate-800/80">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-sky-400 shadow-lg shadow-indigo-500/25">
-              <BrainCircuit className="h-5 w-5 text-white" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 border border-slate-700/80 text-sky-400 shadow-sm">
+              <BrainCircuit className="h-5 w-5" />
             </div>
             <div>
               <span className="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
                 DocuMind
-                <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">
                   RAG
                 </span>
               </span>
@@ -77,7 +77,7 @@ export const Layout: React.FC = () => {
         <div className="p-3 border-b border-slate-800/50">
           <div className="flex items-center justify-between rounded-xl bg-slate-800/50 p-2.5 border border-slate-700/50">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-sky-400 border border-slate-700">
                 <Building2 className="h-3.5 w-3.5" />
               </div>
               <div className="min-w-0">
@@ -105,22 +105,26 @@ export const Layout: React.FC = () => {
                 end={item.to === '/'}
                 onClick={() => setMobileMenuOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium transition-all ${
+                  `flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-medium transition-all interactive-press ${
                     isActive
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                      : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                      ? 'bg-slate-800 text-white font-semibold border border-slate-700 shadow-sm'
+                      : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
                   }`
                 }
               >
-                <Icon className="h-4 w-4" />
-                <span>{item.label}</span>
+                {({ isActive }) => (
+                  <>
+                    <Icon className={`h-4 w-4 ${isActive ? 'text-sky-400' : 'text-slate-400'}`} />
+                    <span>{item.label}</span>
+                  </>
+                )}
               </NavLink>
             );
           })}
 
           <div className="pt-4 mt-4 border-t border-slate-800/60">
-            <div className="px-3 py-2 rounded-xl bg-gradient-to-br from-indigo-900/30 to-slate-900/40 border border-indigo-500/20">
-              <div className="flex items-center gap-1.5 text-indigo-400 text-xs font-semibold mb-1">
+            <div className="px-3 py-2.5 rounded-xl bg-slate-800/40 border border-slate-700/50">
+              <div className="flex items-center gap-1.5 text-sky-400 text-xs font-semibold mb-1">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>A2UI Engine Active</span>
               </div>

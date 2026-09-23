@@ -72,38 +72,38 @@ export const Usage: React.FC = () => {
           </p>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3">
+        <div className="surface-card rounded-2xl p-5 border border-slate-800/80 space-y-3">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-              <Zap className="w-4 h-4 text-purple-400" />
+              <Zap className="w-4 h-4 text-sky-400" />
               Gemini Token Quota
             </span>
-            <span className="font-mono text-purple-400">
+            <span className="font-mono text-sky-400 num-tabular">
               {totalTokens.toLocaleString()} / {maxTokens.toLocaleString()}
             </span>
           </div>
           <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-purple-500 to-indigo-400 transition-all"
+              className="h-full bg-sky-500 transition-all"
               style={{ width: `${Math.min(100, (totalTokens / maxTokens) * 100)}%` }}
             />
           </div>
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-400 num-tabular">
             {promptTokens.toLocaleString()} prompt · {completionTokens.toLocaleString()} completion
           </p>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3">
+        <div className="surface-card rounded-2xl p-5 border border-slate-800/80 space-y-3">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="font-semibold text-slate-200 flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-emerald-400" />
               pgvector Index
             </span>
-            <span className="font-mono text-emerald-400">{chunks} Chunks</span>
+            <span className="font-mono text-emerald-400 num-tabular">{chunks} Chunks</span>
           </div>
           <div className="h-2 w-full rounded-full bg-slate-800 overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 transition-all"
+              className="h-full bg-emerald-500 transition-all"
               style={{ width: `${Math.min(100, (chunks / 2500) * 100)}%` }}
             />
           </div>
@@ -114,10 +114,10 @@ export const Usage: React.FC = () => {
       </div>
 
       {/* Audit Log Table */}
-      <div className="glass-card rounded-2xl border border-slate-800 overflow-hidden">
-        <div className="p-4 border-b border-slate-800">
+      <div className="surface-card rounded-2xl border border-slate-800/80 overflow-hidden">
+        <div className="p-4 border-b border-slate-800/80 bg-slate-900/40">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
-            <Clock className="w-4 h-4 text-indigo-400" />
+            <Clock className="w-4 h-4 text-sky-400" />
             Recent Usage Audit Events
           </h3>
           <p className="text-xs text-slate-400">Immutable ledger of LLM tokens and API operations</p>

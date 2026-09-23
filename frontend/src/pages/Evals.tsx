@@ -150,7 +150,7 @@ export const Evals: React.FC = () => {
           <button
             onClick={triggerEvaluation}
             disabled={running}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-medium shadow-lg shadow-indigo-500/20 disabled:opacity-50 transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-white text-slate-900 text-xs font-semibold shadow-sm disabled:opacity-50 transition-all cursor-pointer interactive-press"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${running ? 'animate-spin' : ''}`} />
             {running ? 'Running Eval...' : 'Run Benchmark'}
@@ -177,12 +177,12 @@ export const Evals: React.FC = () => {
               {report?.passed ? 'Production CI Quality Target Satisfied' : 'Review Required'}
             </h4>
             <p className="text-[11px] text-slate-400">
-              Composite Quality: {(metrics.composite_score * 100).toFixed(1)}% (Target Threshold: ≥{' '}
-              {((report?.fail_under_threshold ?? 0.75) * 100).toFixed(0)}%)
+              Composite Quality: <span className="num-tabular font-mono">{(metrics.composite_score * 100).toFixed(1)}%</span> (Target Threshold: ≥{' '}
+              <span className="num-tabular font-mono">{((report?.fail_under_threshold ?? 0.75) * 100).toFixed(0)}%</span>)
             </p>
           </div>
         </div>
-        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-slate-900/80 border border-slate-800 text-slate-200">
+        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-slate-900/80 border border-slate-800 text-slate-200 num-tabular">
           {results.length} Benchmark Samples
         </span>
       </div>
@@ -190,13 +190,13 @@ export const Evals: React.FC = () => {
       {/* RAG Triad Gauges */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* Metric 1: Faithfulness */}
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-2">
+        <div className="surface-card p-5 rounded-2xl border border-slate-800/80 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="font-semibold text-slate-200 flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               Faithfulness
             </span>
-            <span className="font-mono text-emerald-400 font-bold">
+            <span className="font-mono text-emerald-400 font-bold num-tabular">
               {(metrics.avg_faithfulness * 100).toFixed(1)}%
             </span>
           </div>
@@ -210,19 +210,19 @@ export const Evals: React.FC = () => {
         </div>
 
         {/* Metric 2: Answer Relevance */}
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-2">
+        <div className="surface-card p-5 rounded-2xl border border-slate-800/80 space-y-2">
           <div className="flex items-center justify-between text-xs text-slate-400">
             <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-              <Target className="w-4 h-4 text-indigo-400" />
+              <Target className="w-4 h-4 text-sky-400" />
               Answer Relevance
             </span>
-            <span className="font-mono text-indigo-400 font-bold">
+            <span className="font-mono text-sky-400 font-bold num-tabular">
               {(metrics.avg_answer_relevance * 100).toFixed(1)}%
             </span>
           </div>
           <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
             <div
-              className="h-full bg-indigo-500 transition-all"
+              className="h-full bg-sky-500 transition-all"
               style={{ width: `${metrics.avg_answer_relevance * 100}%` }}
             />
           </div>

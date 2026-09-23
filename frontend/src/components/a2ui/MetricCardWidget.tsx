@@ -11,8 +11,8 @@ export const MetricCardWidget: React.FC<MetricCardWidgetProps> = ({ title, metri
   return (
     <div className="my-3">
       {title && (
-        <h4 className="text-xs font-semibold uppercase tracking-wider text-indigo-400 mb-2.5 flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+        <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2.5 flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
           {title}
         </h4>
       )}
@@ -24,13 +24,13 @@ export const MetricCardWidget: React.FC<MetricCardWidgetProps> = ({ title, metri
           return (
             <div
               key={idx}
-              className="p-3.5 rounded-xl bg-slate-900/90 border border-slate-700/60 shadow-lg relative overflow-hidden group hover:border-indigo-500/50 transition-all"
+              className="surface-card rounded-xl p-3.5 border border-slate-700/60 shadow-sm relative overflow-hidden group hover:border-slate-500 transition-all"
             >
               <div className="flex items-center justify-between text-xs text-slate-400 mb-1">
                 <span className="font-medium truncate">{m.label}</span>
                 {m.change && (
                   <span
-                    className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-semibold ${
+                    className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-semibold num-tabular ${
                       isUp
                         ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
                         : isDown
@@ -45,7 +45,7 @@ export const MetricCardWidget: React.FC<MetricCardWidgetProps> = ({ title, metri
                   </span>
                 )}
               </div>
-              <div className="text-2xl font-bold tracking-tight text-white group-hover:text-indigo-200 transition-colors">
+              <div className="text-2xl font-bold tracking-tight text-white num-tabular transition-colors">
                 {m.value}
               </div>
             </div>

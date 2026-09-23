@@ -26,26 +26,22 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4 relative overflow-hidden">
-      {/* Background glowing orbs */}
-      <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4 relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-[#030712]">
       <div className="w-full max-w-md relative z-10">
         <div className="text-center mb-8">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-sky-400 shadow-xl shadow-indigo-500/25 mb-4">
-            <BrainCircuit className="h-8 w-8 text-white" />
+          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 border border-slate-700/80 text-sky-400 shadow-sm mb-4">
+            <BrainCircuit className="h-8 w-8" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
             Welcome to DocuMind
-            <Sparkles className="w-4 h-4 text-indigo-400" />
+            <Sparkles className="w-4 h-4 text-sky-400" />
           </h1>
           <p className="text-sm text-slate-400 mt-1">
             Enterprise Generative RAG with Google Gemini & Supabase
           </p>
         </div>
 
-        <div className="glass-card rounded-2xl p-6 sm:p-8 shadow-2xl border border-slate-800">
+        <div className="surface-card rounded-2xl p-6 sm:p-8 shadow-2xl border border-slate-800/80">
           {error && (
             <div className="mb-5 flex items-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3 text-xs text-rose-300">
               <AlertCircle className="w-4 h-4 shrink-0" />
@@ -66,7 +62,7 @@ export const Login: React.FC = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
-                  className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500/50"
                 />
               </div>
             </div>
@@ -83,7 +79,7 @@ export const Login: React.FC = () => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500/50"
                 />
               </div>
             </div>
@@ -91,14 +87,14 @@ export const Login: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-semibold py-2.5 text-xs shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-60"
+              className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-slate-100 hover:bg-white text-slate-900 font-semibold py-2.5 text-xs shadow-sm transition-all interactive-press disabled:opacity-60"
             >
               {loading ? (
                 <span>Authenticating...</span>
               ) : (
                 <>
                   <span>Sign In</span>
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 text-slate-900" />
                 </>
               )}
             </button>
@@ -106,7 +102,7 @@ export const Login: React.FC = () => {
 
           <div className="mt-6 pt-5 border-t border-slate-800 text-center text-xs text-slate-400">
             Don't have an account?{' '}
-            <Link to="/signup" className="text-indigo-400 font-semibold hover:underline">
+            <Link to="/signup" className="text-sky-400 font-medium hover:underline">
               Create a workspace
             </Link>
           </div>

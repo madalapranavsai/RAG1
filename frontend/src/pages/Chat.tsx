@@ -11,6 +11,9 @@ import {
   Sparkles,
   ChevronRight,
   Search,
+  Copy,
+  Check,
+  CornerDownLeft,
 } from 'lucide-react';
 import { api } from '../api/client';
 import type { ChatSession, ChatMessage, A2UIPayload } from '../types';
@@ -25,6 +28,7 @@ export const Chat: React.FC = () => {
   const [inputContent, setInputContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [copiedMsgIdx, setCopiedMsgIdx] = useState<number | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -156,8 +160,14 @@ export const Chat: React.FC = () => {
     }
   };
 
+  const handleCopyAssistantMessage = (content: string, idx: number) => {
+    navigator.clipboard.writeText(content);
+    setCopiedMsgIdx(idx);
+    setTimeout(() => setCopiedMsgIdx(null), 2000);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if ((e.key === 'Enter' && !e.shiftKey) || (e.key === 'Enter' && (e.metaKey || e.ctrlKey))) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -166,17 +176,17 @@ export const Chat: React.FC = () => {
   return (
     <div className="flex h-full w-full overflow-hidden bg-slate-950">
       {/* Left Chat Threads Sidebar */}
-      <div className="hidden md:flex w-72 flex-col border-r border-slate-800 bg-slate-900/60 p-3">
+      <div className="hidden md:flex w-72 flex-col border-r border-slate-800/80 bg-slate-900/70 p-3">
         <button
           onClick={handleCreateSession}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-2.5 text-xs font-semibold shadow-lg shadow-indigo-600/25 transition-all mb-3"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-100 hover:bg-white text-slate-900 px-3 py-2.5 text-xs font-semibold shadow-sm transition-all interactive-press mb-3"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-4 h-4 text-slate-900" />
           <span>New Conversation</span>
         </button>
 
         <div className="flex-1 overflow-y-auto space-y-1">
-          <p className="px-2 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+          <p className="px-2 py-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
             Recent Threads
           </p>
           {sessionsLoading ? (
@@ -188,14 +198,14 @@ export const Chat: React.FC = () => {
               <div
                 key={session.id}
                 onClick={() => setActiveSessionId(session.id)}
-                className={`group flex items-center justify-between rounded-xl px-3 py-2 text-xs cursor-pointer transition-all ${
+                className={`group flex items-center justify-between rounded-xl px-3 py-2.5 text-xs cursor-pointer transition-all ${
                   activeSessionId === session.id
-                    ? 'bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 font-medium'
-                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+                    ? 'bg-slate-800/90 text-white border border-slate-700 font-medium shadow-sm'
+                    : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-200'
                 }`}
               >
                 <div className="flex items-center gap-2 min-w-0 pr-2">
-                  <MessageSquare className="w-3.5 h-3.5 shrink-0 text-indigo-400" />
+                  <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${activeSessionId === session.id ? 'text-sky-400' : 'text-slate-500'}`} />
                   <span className="truncate">{session.title}</span>
                 </div>
                 <button
@@ -214,15 +224,15 @@ export const Chat: React.FC = () => {
       {/* Main Chat Conversation Stream */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex h-14 items-center justify-between border-b border-slate-800 bg-slate-900/50 px-6 backdrop-blur">
+        <div className="flex h-14 items-center justify-between border-b border-slate-800/80 bg-slate-900/60 px-6 backdrop-blur">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-white truncate max-w-sm">
               {sessions.find((s) => s.id === activeSessionId)?.title || 'DocuMind Assistant'}
             </span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 text-[10px] font-mono text-indigo-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-800/80 border border-slate-700/80 px-2.5 py-0.5 text-[10px] font-mono text-slate-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
               Gemini 2.5 Flash Grounded
             </span>
           </div>
@@ -232,13 +242,13 @@ export const Chat: React.FC = () => {
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-6 max-w-lg mx-auto">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-500/10 text-indigo-400 mb-4 border border-indigo-500/20">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-500/10 text-sky-400 mb-4 border border-sky-500/20 shadow-sm">
                 <BrainCircuit className="h-7 w-7" />
               </div>
-              <h3 className="text-lg font-bold text-white">How can I assist your team today?</h3>
-              <p className="text-xs text-slate-400 mt-1 mb-6">
-                Ask any question grounded in your uploaded workspace documents. DocuMind will provide
-                accurate answers with citations and Generative A2UI widgets.
+              <h3 className="text-lg font-bold text-white tracking-tight">How can I assist your workspace today?</h3>
+              <p className="text-xs text-slate-400 mt-1 mb-6 max-w-md">
+                Ask any question grounded in your uploaded documents. DocuMind provides
+                traceable answers with chunk citations and interactive widgets.
               </p>
 
               <div className="w-full space-y-2 text-left">
@@ -250,10 +260,10 @@ export const Chat: React.FC = () => {
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(promptText)}
-                    className="w-full text-left p-3 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 hover:border-indigo-500/40 text-xs text-slate-300 transition-all flex items-center justify-between group"
+                    className="w-full text-left p-3.5 rounded-xl bg-slate-900/80 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 text-xs text-slate-300 transition-all flex items-center justify-between group surface-card interactive-press"
                   >
                     <span>{promptText}</span>
-                    <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-indigo-400 transition-colors" />
+                    <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-sky-400 transition-colors" />
                   </button>
                 ))}
               </div>
@@ -273,8 +283,8 @@ export const Chat: React.FC = () => {
                   <div
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-xs font-semibold ${
                       isUser
-                        ? 'bg-indigo-600 text-white'
-                        : 'bg-slate-800 text-indigo-400 border border-slate-700'
+                        ? 'bg-sky-600 text-white shadow-sm'
+                        : 'bg-slate-800 text-sky-400 border border-slate-700'
                     }`}
                   >
                     {isUser ? <User className="w-4 h-4" /> : <BrainCircuit className="w-4 h-4" />}
@@ -289,17 +299,39 @@ export const Chat: React.FC = () => {
                     <div
                       className={`rounded-2xl p-4 text-xs leading-relaxed ${
                         isUser
-                          ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20'
-                          : 'glass-card border border-slate-800 text-slate-200 shadow-lg'
+                          ? 'bg-slate-800/90 border border-slate-700/80 text-white shadow-sm'
+                          : 'surface-card border border-slate-800/90 text-slate-200 shadow-md'
                       }`}
                     >
-                      {/* CRAG Query Rewriting Badge */}
-                      {msg.crag_status && msg.crag_status.rewritten && (
-                        <div className="mb-2.5 inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-1 text-[10px] text-indigo-300">
-                          <Search className="w-3 h-3 text-indigo-400 shrink-0" />
-                          <span>
-                            CRAG optimized: <strong className="text-white">"{msg.crag_status.search_query}"</strong>
-                          </span>
+                      {/* Top Action Header on Assistant Response */}
+                      {!isUser && (
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-semibold text-slate-300">DocuMind</span>
+                            {msg.crag_status && msg.crag_status.rewritten && (
+                              <span className="inline-flex items-center gap-1 rounded bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 text-[10px] text-sky-300 font-mono">
+                                <Search className="w-2.5 h-2.5 text-sky-400 shrink-0" />
+                                <span>CRAG optimized</span>
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleCopyAssistantMessage(msg.content, idx)}
+                            title="Copy response"
+                            className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                          >
+                            {copiedMsgIdx === idx ? (
+                              <>
+                                <Check className="w-3 h-3 text-emerald-400" />
+                                <span className="text-emerald-400 font-medium">Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3 h-3" />
+                                <span>Copy</span>
+                              </>
+                            )}
+                          </button>
                         </div>
                       )}
 
@@ -357,9 +389,9 @@ export const Chat: React.FC = () => {
                           <button
                             key={fqIdx}
                             onClick={() => handleSendMessage(fq)}
-                            className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/90 border border-indigo-500/30 px-3 py-1 text-[11px] font-medium text-indigo-300 hover:bg-indigo-600 hover:text-white transition-all shadow-sm"
+                            className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 border border-slate-700/80 px-3 py-1 text-[11px] font-medium text-slate-300 hover:border-sky-500/50 hover:text-white transition-all shadow-sm interactive-press"
                           >
-                            <Sparkles className="w-3 h-3 text-indigo-400" />
+                            <Sparkles className="w-3 h-3 text-sky-400" />
                             <span>{fq}</span>
                           </button>
                         ))}
@@ -373,11 +405,11 @@ export const Chat: React.FC = () => {
 
           {loading && (
             <div className="flex gap-3 max-w-3xl mr-auto">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-indigo-400 border border-slate-700">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-sky-400 border border-slate-700">
                 <BrainCircuit className="w-4 h-4 animate-spin-slow" />
               </div>
-              <div className="glass-card rounded-2xl p-4 border border-slate-800 text-xs text-slate-400 flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-indigo-500 animate-ping" />
+              <div className="surface-card rounded-2xl p-4 border border-slate-800 text-xs text-slate-400 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping" />
                 <span>DocuMind is retrieving workspace chunks and generating answer...</span>
               </div>
             </div>
@@ -387,23 +419,42 @@ export const Chat: React.FC = () => {
         </div>
 
         {/* Input Composer */}
-        <div className="border-t border-slate-800 bg-slate-900/70 p-4 backdrop-blur">
-          <div className="max-w-3xl mx-auto relative flex items-center">
-            <textarea
-              rows={1}
-              value={inputContent}
-              onChange={(e) => setInputContent(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask a question about your workspace documents (e.g. 'Show comparison chart of revenues')..."
-              className="w-full resize-none rounded-2xl bg-slate-950 border border-slate-700/80 pl-4 pr-12 py-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
-            />
-            <button
-              onClick={() => handleSendMessage()}
-              disabled={!inputContent.trim() || loading}
-              className="absolute right-2.5 flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-40 disabled:hover:bg-indigo-600 transition-all shadow-md"
-            >
-              <Send className="w-4 h-4" />
-            </button>
+        <div className="border-t border-slate-800/80 bg-slate-900/80 p-4 backdrop-blur">
+          <div className="max-w-3xl mx-auto space-y-2">
+            <div className="relative flex items-center">
+              <textarea
+                rows={1}
+                value={inputContent}
+                onChange={(e) => setInputContent(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask a question about your workspace documents..."
+                className="w-full resize-none rounded-2xl bg-slate-950 border border-slate-700/80 pl-4 pr-12 py-3.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500/50 transition-all"
+              />
+              <button
+                onClick={() => handleSendMessage()}
+                disabled={!inputContent.trim() || loading}
+                className="absolute right-2.5 flex h-8 w-8 items-center justify-center rounded-xl bg-sky-600 hover:bg-sky-500 text-white disabled:opacity-40 disabled:hover:bg-sky-600 transition-all shadow-sm interactive-press"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-slate-500 px-1">
+              <div className="flex items-center gap-1.5">
+                <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px] text-slate-300">
+                  Enter
+                </span>
+                <span>to send</span>
+                <span className="mx-1">·</span>
+                <span className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-[10px] text-slate-300">
+                  Shift + Enter
+                </span>
+                <span>for newline</span>
+              </div>
+              <div className="hidden sm:flex items-center gap-1 text-[10px] text-slate-500 font-mono">
+                <CornerDownLeft className="w-3 h-3 text-slate-600" />
+                <span>DocuMind Grounded RAG</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
