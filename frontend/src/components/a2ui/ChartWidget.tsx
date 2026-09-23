@@ -39,11 +39,11 @@ interface ChartWidgetProps {
 }
 
 const PALETTE = [
-  { bg: 'rgba(99, 102, 241, 0.6)', border: '#6366f1' },
-  { bg: 'rgba(14, 165, 233, 0.6)', border: '#0ea5e9' },
-  { bg: 'rgba(168, 85, 247, 0.6)', border: '#a855f7' },
-  { bg: 'rgba(16, 185, 129, 0.6)', border: '#10b981' },
-  { bg: 'rgba(244, 63, 94, 0.6)', border: '#f43f5e' },
+  { bg: 'rgba(28, 25, 23, 0.75)', border: '#1c1917' },
+  { bg: 'rgba(120, 113, 108, 0.7)', border: '#78716c' },
+  { bg: 'rgba(180, 83, 9, 0.7)', border: '#b45309' },
+  { bg: 'rgba(21, 128, 61, 0.7)', border: '#15803d' },
+  { bg: 'rgba(2, 132, 199, 0.7)', border: '#0284c7' },
 ];
 
 export const ChartWidget: React.FC<ChartWidgetProps> = ({
@@ -77,39 +77,39 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({
       legend: {
         position: 'top' as const,
         labels: {
-          color: '#94a3b8',
-          font: { size: 11 },
+          color: '#57534e',
+          font: { size: 11, family: 'Public Sans' },
           boxWidth: 12,
         },
       },
       tooltip: {
-        backgroundColor: '#0f172a',
-        titleColor: '#f8fafc',
-        bodyColor: '#cbd5e1',
-        borderColor: '#334155',
+        backgroundColor: '#1c1917',
+        titleColor: '#faf9f5',
+        bodyColor: '#e7e5e4',
+        borderColor: '#44403c',
         borderWidth: 1,
         padding: 8,
       },
     },
     scales: {
       x: {
-        grid: { color: 'rgba(51, 65, 85, 0.3)' },
-        ticks: { color: '#94a3b8', font: { size: 10 } },
+        grid: { color: 'rgba(229, 227, 220, 0.8)' },
+        ticks: { color: '#78716c', font: { size: 10 } },
       },
       y: {
-        grid: { color: 'rgba(51, 65, 85, 0.3)' },
-        ticks: { color: '#94a3b8', font: { size: 10 } },
+        grid: { color: 'rgba(229, 227, 220, 0.8)' },
+        ticks: { color: '#78716c', font: { size: 10 } },
       },
     },
   };
 
   return (
-    <div className="my-3 rounded-xl border border-slate-700/60 bg-slate-900/80 p-3.5 shadow-lg">
-      <div className="flex items-center gap-2 mb-3 text-xs font-semibold text-slate-200">
+    <div className="my-3 rounded-lg border border-[#e5e3dc] bg-white p-3.5">
+      <div className="flex items-center gap-2 mb-3 text-xs font-semibold text-[#1c1917]">
         {isLine ? (
-          <LineChartIcon className="w-3.5 h-3.5 text-sky-400" />
+          <LineChartIcon className="w-3.5 h-3.5 text-[#78716c]" />
         ) : (
-          <BarChart3 className="w-3.5 h-3.5 text-indigo-400" />
+          <BarChart3 className="w-3.5 h-3.5 text-[#78716c]" />
         )}
         <span>{title || (isLine ? 'Trend Chart' : 'Metric Comparison')}</span>
       </div>

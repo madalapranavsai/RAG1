@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BrainCircuit, Sparkles, Lock, Mail, ArrowRight, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ArrowRight, AlertCircle, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export const Login: React.FC = () => {
@@ -19,31 +19,33 @@ export const Login: React.FC = () => {
       await login(email, password);
       navigate('/');
     } catch (err: any) {
-      setError(err?.message || 'Login failed. Please verify credentials.');
+      setError(err?.message || 'Authentication failed. Please verify credentials.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-950 p-4 relative overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-[#030712]">
-      <div className="w-full max-w-md relative z-10">
+    <div className="flex min-h-screen items-center justify-center bg-[#faf9f5] p-4">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-800 border border-slate-700/80 text-sky-400 shadow-sm mb-4">
-            <BrainCircuit className="h-8 w-8" />
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-white border border-[#e5e3dc] text-[#1c1917] shadow-sm mb-4">
+            <BookOpen className="h-6 w-6 text-[#1c1917]" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center justify-center gap-2">
-            Welcome to DocuMind
-            <Sparkles className="w-4 h-4 text-sky-400" />
+          <div className="flex items-center justify-center gap-2 mb-1">
+            <span className="stamp-badge font-mono text-[10px]">ARCHIVAL INTELLIGENCE</span>
+          </div>
+          <h1 className="font-editorial text-2xl font-semibold tracking-tight text-[#1c1917]">
+            DocuMind Archive
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
-            Enterprise Generative RAG with Google Gemini & Supabase
+          <p className="text-xs text-[#57534e] mt-1">
+            Enterprise Generative RAG with Grounded Corrective Retrieval
           </p>
         </div>
 
-        <div className="surface-card rounded-2xl p-6 sm:p-8 shadow-2xl border border-slate-800/80">
+        <div className="paper-sheet rounded-xl p-6 sm:p-8 border border-[#e5e3dc] bg-white">
           {error && (
-            <div className="mb-5 flex items-center gap-2 rounded-xl bg-rose-500/10 border border-rose-500/20 p-3 text-xs text-rose-300">
+            <div className="mb-5 flex items-center gap-2 rounded-lg bg-[#fef2f2] border border-[#fecaca] p-3 text-xs text-[#991b1b]">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -51,35 +53,35 @@ export const Login: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Work Email Address
+              <label className="block text-xs font-medium text-[#44403c] mb-1.5 font-mono text-[11px]">
+                WORK EMAIL
               </label>
               <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8a29e]" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@company.com"
-                  className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500/50"
+                  placeholder="analyst@firm.com"
+                  className="w-full rounded-lg bg-[#faf9f5] border border-[#d5d2c7] pl-10 pr-4 py-2.5 text-xs text-[#1c1917] placeholder-[#a8a29e] focus:outline-none focus:border-[#1c1917] focus:bg-white transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Password
+              <label className="block text-xs font-medium text-[#44403c] mb-1.5 font-mono text-[11px]">
+                PASSWORD
               </label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a8a29e]" />
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full rounded-xl bg-slate-900/90 border border-slate-700/80 pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500/50"
+                  className="w-full rounded-lg bg-[#faf9f5] border border-[#d5d2c7] pl-10 pr-4 py-2.5 text-xs text-[#1c1917] placeholder-[#a8a29e] focus:outline-none focus:border-[#1c1917] focus:bg-white transition-all"
                 />
               </div>
             </div>
@@ -87,23 +89,23 @@ export const Login: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 flex items-center justify-center gap-2 rounded-xl bg-slate-100 hover:bg-white text-slate-900 font-semibold py-2.5 text-xs shadow-sm transition-all interactive-press disabled:opacity-60"
+              className="w-full mt-2 flex items-center justify-center gap-2 rounded-lg bg-[#1c1917] hover:bg-[#292524] text-white font-semibold py-2.5 text-xs shadow-sm transition-all interactive-press disabled:opacity-60"
             >
               {loading ? (
                 <span>Authenticating...</span>
               ) : (
                 <>
                   <span>Sign In</span>
-                  <ArrowRight className="w-4 h-4 text-slate-900" />
+                  <ArrowRight className="w-4 h-4 text-white" />
                 </>
               )}
             </button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-slate-800 text-center text-xs text-slate-400">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-sky-400 font-medium hover:underline">
-              Create a workspace
+          <div className="mt-6 pt-5 border-t border-[#e5e3dc] text-center text-xs text-[#78716c]">
+            Need a workspace?{' '}
+            <Link to="/signup" className="text-[#1c1917] font-semibold hover:underline">
+              Create an account
             </Link>
           </div>
         </div>

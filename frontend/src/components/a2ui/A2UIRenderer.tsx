@@ -1,5 +1,4 @@
 import React from 'react';
-import { Sparkles } from 'lucide-react';
 import type { A2UIPayload } from '../../types';
 import { MetricCardWidget } from './MetricCardWidget';
 import { TableWidget } from './TableWidget';
@@ -40,19 +39,18 @@ export const A2UIRenderer: React.FC<A2UIRendererProps> = ({ payload }) => {
   };
 
   return (
-    <div className="my-3 p-1 rounded-2xl bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-sky-500/20 shadow-xl border border-indigo-500/30">
-      <div className="rounded-[14px] bg-slate-950/90 p-3">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2 text-[10px] text-indigo-400 font-mono">
-          <div className="flex items-center gap-1.5 font-semibold uppercase tracking-wider">
-            <Sparkles className="w-3 h-3 text-indigo-400 animate-spin-slow" />
-            <span>Generative A2UI Widget</span>
-          </div>
-          <span className="px-1.5 py-0.2 rounded bg-indigo-500/10 border border-indigo-500/30 text-[10px]">
-            {payload.type}
-          </span>
+    <div className="my-4 paper-sheet p-3.5 border border-[#e5e3dc] bg-white rounded-xl">
+      <div className="flex items-center justify-between border-b border-[#e5e3dc] pb-2 mb-3 text-[10px] text-[#78716c] font-mono">
+        <div className="flex items-center gap-1.5 font-semibold uppercase tracking-wider text-[#44403c]">
+          <span className="w-1.5 h-1.5 rounded-full bg-[#1c1917]" />
+          <span>Figure // Generative Synthesis</span>
         </div>
-        {renderWidget()}
+        <span className="stamp-badge font-mono text-[9px] uppercase">
+          {payload.type.replace('_', ' ')}
+        </span>
       </div>
+      {renderWidget()}
     </div>
   );
 };
+

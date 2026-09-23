@@ -9,17 +9,17 @@ interface MermaidWidgetProps {
 
 mermaid.initialize({
   startOnLoad: false,
-  theme: 'dark',
+  theme: 'neutral',
   securityLevel: 'loose',
   themeVariables: {
-    darkMode: true,
-    background: '#0f172a',
-    primaryColor: '#6366f1',
-    primaryTextColor: '#f8fafc',
-    primaryBorderColor: '#818cf8',
-    lineColor: '#94a3b8',
-    secondaryColor: '#1e293b',
-    tertiaryColor: '#0f172a',
+    darkMode: false,
+    background: '#faf9f5',
+    primaryColor: '#f4f3ee',
+    primaryTextColor: '#1c1917',
+    primaryBorderColor: '#78716c',
+    lineColor: '#57534e',
+    secondaryColor: '#ffffff',
+    tertiaryColor: '#faf9f5',
   },
 });
 
@@ -60,34 +60,34 @@ export const MermaidWidget: React.FC<MermaidWidgetProps> = ({ title, definition 
   };
 
   return (
-    <div className="my-3 rounded-xl border border-slate-700/60 bg-slate-900/80 p-3.5 shadow-lg">
-      <div className="flex items-center justify-between mb-3 text-xs font-semibold text-slate-200">
+    <div className="my-3 rounded-lg border border-[#e5e3dc] bg-white p-3.5">
+      <div className="flex items-center justify-between mb-3 text-xs font-semibold text-[#1c1917]">
         <div className="flex items-center gap-2">
-          <GitGraph className="w-3.5 h-3.5 text-indigo-400" />
-          <span>{title || 'Workflow & Architecture Diagram'}</span>
+          <GitGraph className="w-3.5 h-3.5 text-[#78716c]" />
+          <span>{title || 'Workflow & System Blueprint'}</span>
         </div>
         <button
           onClick={handleCopy}
-          className="flex items-center gap-1 px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 text-[11px] transition-colors"
+          className="flex items-center gap-1 px-2 py-0.5 rounded bg-white hover:bg-[#eae8e1] border border-[#e5e3dc] text-[#57534e] hover:text-[#1c1917] text-[11px] transition-colors"
         >
-          {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-          {copied ? 'Copied' : 'Copy'}
+          {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3 text-[#78716c]" />}
+          <span>{copied ? 'Copied' : 'Copy'}</span>
         </button>
       </div>
 
       {error ? (
-        <div className="p-3 text-xs text-rose-300 bg-rose-950/30 border border-rose-800/40 rounded-lg">
-          <p className="font-semibold mb-1">Diagram Render Error</p>
-          <pre className="text-[11px] font-mono text-slate-400 overflow-x-auto">{definition}</pre>
+        <div className="p-3 text-xs text-rose-800 bg-rose-50 border border-rose-200 rounded-lg">
+          <p className="font-semibold mb-1">Blueprint Syntax Error</p>
+          <pre className="text-[11px] font-mono text-stone-600 overflow-x-auto">{definition}</pre>
         </div>
       ) : svg ? (
         <div
           ref={containerRef}
-          className="overflow-x-auto flex justify-center p-2 bg-slate-950/40 rounded-lg"
+          className="overflow-x-auto flex justify-center p-3 bg-[#faf9f5] rounded-lg border border-[#e5e3dc]"
           dangerouslySetInnerHTML={{ __html: svg }}
         />
       ) : (
-        <div className="p-4 text-center text-xs text-slate-500">Generating diagram...</div>
+        <div className="p-4 text-center text-xs text-[#78716c]">Rendering blueprint...</div>
       )}
     </div>
   );

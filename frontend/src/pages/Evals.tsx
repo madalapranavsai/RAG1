@@ -4,7 +4,6 @@ import {
   XCircle,
   ShieldCheck,
   RefreshCw,
-  BarChart3,
   Clock,
   Database,
   Zap,
@@ -85,7 +84,6 @@ export const Evals: React.FC = () => {
     setRunning(true);
     try {
       await fetch('/api/evals/trigger?sample_size=3', { method: 'POST' });
-      // Poll every 4 seconds until finished
       const interval = setInterval(async () => {
         const st = await fetch('/api/evals/status');
         const stData = await st.json();
@@ -104,8 +102,8 @@ export const Evals: React.FC = () => {
   if (loading) {
     return (
       <div className="flex h-full w-full items-center justify-center p-8">
-        <div className="flex flex-col items-center gap-3 text-indigo-400">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-indigo-500 border-t-transparent" />
+        <div className="flex flex-col items-center gap-3 text-[#78716c]">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[#1c1917] border-t-transparent" />
           <span className="text-xs font-mono tracking-wider">LOADING QUALITY METRICS...</span>
         </div>
       </div>
@@ -129,160 +127,170 @@ export const Evals: React.FC = () => {
       : results.filter((r) => r.category.toLowerCase().includes(filterCategory.toLowerCase()));
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 md:p-10 space-y-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#e5e3dc] pb-5">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            RAG Quality & Production CI
-            <ShieldCheck className="w-5 h-5 text-indigo-400" />
+          <div className="flex items-center gap-2 mb-1">
+            <span className="stamp-badge font-mono text-[10px]">CERTIFICATION AUDIT</span>
+            <span className="text-[11px] font-mono text-[#78716c]">LLM-AS-A-JUDGE</span>
+          </div>
+          <h1 className="font-editorial text-2xl font-semibold tracking-tight text-[#1c1917] flex items-center gap-2">
+            RAG Quality & Benchmark Certification
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            LLM-as-a-judge automated benchmarking assessing Groundedness (Faithfulness), Retrieval Relevance, and CRAG accuracy.
+          <p className="text-xs text-[#57534e] mt-1 max-w-2xl leading-relaxed">
+            Automated quality benchmarking assessing Groundedness (Faithfulness), Retrieval Context
+            Precision, and Corrective RAG (CRAG) decision accuracy.
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-[11px] font-mono text-slate-400 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-lg flex items-center gap-2">
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
+          <span className="text-[11px] font-mono text-[#78716c] bg-white border border-[#e5e3dc] px-3 py-1.5 rounded-lg flex items-center gap-2">
+            <Clock className="w-3.5 h-3.5 text-[#a8a29e]" />
             {report?.timestamp ?? 'Never'}
           </span>
           <button
             onClick={triggerEvaluation}
             disabled={running}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 hover:bg-white text-slate-900 text-xs font-semibold shadow-sm disabled:opacity-50 transition-all cursor-pointer interactive-press"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1c1917] hover:bg-[#292524] text-white text-xs font-semibold shadow-sm disabled:opacity-50 transition-all cursor-pointer interactive-press"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${running ? 'animate-spin' : ''}`} />
-            {running ? 'Running Eval...' : 'Run Benchmark'}
+            {running ? 'Running Benchmark...' : 'Run Quality Audit'}
           </button>
         </div>
       </div>
 
-      {/* CI Status Banner */}
+      {/* CI Quality Certificate Banner */}
       <div
-        className={`p-4 rounded-2xl border flex items-center justify-between ${
+        className={`p-5 rounded-xl border flex items-center justify-between paper-sheet ${
           report?.passed
-            ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-300'
-            : 'bg-amber-950/20 border-amber-800/40 text-amber-300'
+            ? 'bg-[#f0fdf4] border-[#bbf7d0] text-[#166534]'
+            : 'bg-[#fffbeb] border-[#fef3c7] text-[#92400e]'
         }`}
       >
         <div className="flex items-center gap-3">
           {report?.passed ? (
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <CheckCircle2 className="w-6 h-6 text-[#166534] shrink-0" />
           ) : (
-            <XCircle className="w-5 h-5 text-amber-400" />
+            <XCircle className="w-6 h-6 text-[#92400e] shrink-0" />
           )}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider">
-              {report?.passed ? 'Production CI Quality Target Satisfied' : 'Review Required'}
+            <h4 className="text-xs font-bold uppercase tracking-wider font-mono">
+              {report?.passed ? 'Production Certification Satisfied' : 'Audit Review Required'}
             </h4>
-            <p className="text-[11px] text-slate-400">
-              Composite Quality: <span className="num-tabular font-mono">{(metrics.composite_score * 100).toFixed(1)}%</span> (Target Threshold: ≥{' '}
-              <span className="num-tabular font-mono">{((report?.fail_under_threshold ?? 0.75) * 100).toFixed(0)}%</span>)
+            <p className="text-xs mt-0.5 opacity-90">
+              Composite Quality Score:{' '}
+              <strong className="num-tabular font-mono">
+                {(metrics.composite_score * 100).toFixed(1)}%
+              </strong>{' '}
+              (Target Threshold: ≥{' '}
+              <span className="num-tabular font-mono">
+                {((report?.fail_under_threshold ?? 0.75) * 100).toFixed(0)}%
+              </span>
+              )
             </p>
           </div>
         </div>
-        <span className="text-xs font-mono font-bold px-2.5 py-1 rounded bg-slate-900/80 border border-slate-800 text-slate-200 num-tabular">
-          {results.length} Benchmark Samples
+        <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded bg-white border border-[#e5e3dc] text-[#1c1917] num-tabular">
+          {results.length} Verified Samples
         </span>
       </div>
 
       {/* RAG Triad Gauges */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
         {/* Metric 1: Faithfulness */}
-        <div className="surface-card p-5 rounded-2xl border border-slate-800/80 space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+        <div className="paper-sheet p-4 rounded-xl border border-[#e5e3dc] bg-white space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#78716c]">
+            <span className="font-semibold text-[#1c1917] flex items-center gap-1.5 font-mono text-[11px]">
+              <ShieldCheck className="w-3.5 h-3.5 text-[#166534]" />
               Faithfulness
             </span>
-            <span className="font-mono text-emerald-400 font-bold num-tabular">
+            <span className="font-mono text-[#166534] font-bold num-tabular">
               {(metrics.avg_faithfulness * 100).toFixed(1)}%
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-[#e5e3dc] overflow-hidden">
             <div
-              className="h-full bg-emerald-500 transition-all"
+              className="h-full bg-[#1c1917] transition-all"
               style={{ width: `${metrics.avg_faithfulness * 100}%` }}
             />
           </div>
-          <p className="text-[10px] text-slate-400">Claims grounded directly in retrieved documents without hallucination.</p>
+          <p className="text-[10px] text-[#78716c]">Zero hallucination grounding ratio.</p>
         </div>
 
         {/* Metric 2: Answer Relevance */}
-        <div className="surface-card p-5 rounded-2xl border border-slate-800/80 space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-              <Target className="w-4 h-4 text-sky-400" />
-              Answer Relevance
+        <div className="paper-sheet p-4 rounded-xl border border-[#e5e3dc] bg-white space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#78716c]">
+            <span className="font-semibold text-[#1c1917] flex items-center gap-1.5 font-mono text-[11px]">
+              <Target className="w-3.5 h-3.5 text-[#1c1917]" />
+              Relevance
             </span>
-            <span className="font-mono text-sky-400 font-bold num-tabular">
+            <span className="font-mono text-[#1c1917] font-bold num-tabular">
               {(metrics.avg_answer_relevance * 100).toFixed(1)}%
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-[#e5e3dc] overflow-hidden">
             <div
-              className="h-full bg-sky-500 transition-all"
+              className="h-full bg-[#1c1917] transition-all"
               style={{ width: `${metrics.avg_answer_relevance * 100}%` }}
             />
           </div>
-          <p className="text-[10px] text-slate-400">Direct completeness and precision relative to reference answer.</p>
+          <p className="text-[10px] text-[#78716c]">Precision relative to gold standard.</p>
         </div>
 
         {/* Metric 3: Context Precision */}
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-              <Database className="w-4 h-4 text-sky-400" />
+        <div className="paper-sheet p-4 rounded-xl border border-[#e5e3dc] bg-white space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#78716c]">
+            <span className="font-semibold text-[#1c1917] flex items-center gap-1.5 font-mono text-[11px]">
+              <Database className="w-3.5 h-3.5 text-[#1c1917]" />
               Context Relevance
             </span>
-            <span className="font-mono text-sky-400 font-bold">
+            <span className="font-mono text-[#1c1917] font-bold num-tabular">
               {(metrics.avg_context_relevance * 100).toFixed(1)}%
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-[#e5e3dc] overflow-hidden">
             <div
-              className="h-full bg-sky-500 transition-all"
+              className="h-full bg-[#1c1917] transition-all"
               style={{ width: `${metrics.avg_context_relevance * 100}%` }}
             />
           </div>
-          <p className="text-[10px] text-slate-400">Signal-to-noise ratio in retrieved vector chunks.</p>
+          <p className="text-[10px] text-[#78716c]">Signal-to-noise ratio in retrieved chunks.</p>
         </div>
 
         {/* Metric 4: CRAG Accuracy */}
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-2">
-          <div className="flex items-center justify-between text-xs text-slate-400">
-            <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-              <Zap className="w-4 h-4 text-amber-400" />
+        <div className="paper-sheet p-4 rounded-xl border border-[#e5e3dc] bg-white space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#78716c]">
+            <span className="font-semibold text-[#1c1917] flex items-center gap-1.5 font-mono text-[11px]">
+              <Zap className="w-3.5 h-3.5 text-[#b45309]" />
               CRAG Accuracy
             </span>
-            <span className="font-mono text-amber-400 font-bold">
+            <span className="font-mono text-[#b45309] font-bold num-tabular">
               {(metrics.crag_accuracy * 100).toFixed(0)}%
             </span>
           </div>
-          <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+          <div className="h-1.5 w-full rounded-full bg-[#e5e3dc] overflow-hidden">
             <div
-              className="h-full bg-amber-500 transition-all"
+              className="h-full bg-[#1c1917] transition-all"
               style={{ width: `${metrics.crag_accuracy * 100}%` }}
             />
           </div>
-          <p className="text-[10px] text-slate-400">Accuracy of dynamic grading and query rewrite routing decisions.</p>
+          <p className="text-[10px] text-[#78716c]">Dynamic routing & query rewriting decisions.</p>
         </div>
       </div>
 
       {/* Benchmark Exploration Section */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Test List */}
-        <div className="lg:col-span-5 p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-4">
+        <div className="lg:col-span-5 p-5 rounded-xl bg-white border border-[#e5e3dc] paper-sheet space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-indigo-400" />
-              Benchmark Test Cases
+            <h3 className="font-editorial text-sm font-semibold text-[#1c1917]">
+              Sample Registry
             </h3>
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="text-xs bg-slate-800 border border-slate-700 text-slate-300 rounded-lg px-2.5 py-1 focus:outline-none"
+              className="text-xs bg-[#faf9f5] border border-[#d5d2c7] text-[#1c1917] rounded-lg px-2.5 py-1 focus:outline-none"
             >
               <option value="all">All Categories</option>
               <option value="factual">Factual QA</option>
@@ -292,27 +300,27 @@ export const Evals: React.FC = () => {
             </select>
           </div>
 
-          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
             {filteredResults.map((tc) => {
               const isSelected = selectedCase?.id === tc.id;
               return (
                 <div
                   key={tc.id}
                   onClick={() => setSelectedCase(tc)}
-                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                  className={`p-3 rounded-lg border text-left transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-indigo-950/40 border-indigo-500/50 shadow-md shadow-indigo-500/10'
-                      : 'bg-slate-900/40 border-slate-800/60 hover:bg-slate-800/40'
+                      ? 'bg-[#faf9f5] border-[#1c1917] shadow-sm'
+                      : 'bg-white border-[#e5e3dc] hover:bg-[#faf9f5]'
                   }`}
                 >
-                  <div className="flex items-center justify-between text-[11px] mb-1.5">
-                    <span className="font-mono font-semibold text-slate-400">{tc.id}</span>
-                    <span className="px-2 py-0.5 rounded text-[10px] bg-slate-800 border border-slate-700 text-slate-300">
+                  <div className="flex items-center justify-between text-[11px] mb-1">
+                    <span className="font-mono font-semibold text-[#1c1917]">{tc.id}</span>
+                    <span className="stamp-badge font-mono text-[9px] uppercase">
                       {tc.category}
                     </span>
                   </div>
-                  <p className="text-xs font-medium text-slate-200 line-clamp-1">{tc.question}</p>
-                  <div className="mt-2.5 flex items-center justify-between text-[10px] text-slate-400 font-mono">
+                  <p className="text-xs font-medium text-[#292524] line-clamp-1">{tc.question}</p>
+                  <div className="mt-2 flex items-center justify-between text-[10px] text-[#78716c] font-mono num-tabular">
                     <span>Faithful: {(tc.scores.faithfulness * 100).toFixed(0)}%</span>
                     <span>Relevance: {(tc.scores.answer_relevance * 100).toFixed(0)}%</span>
                     <span>{tc.latency_ms} ms</span>
@@ -324,78 +332,82 @@ export const Evals: React.FC = () => {
         </div>
 
         {/* Selected Test Case Inspector */}
-        <div className="lg:col-span-7 p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 space-y-5">
+        <div className="lg:col-span-7 p-6 rounded-xl bg-white border border-[#e5e3dc] paper-sheet space-y-5">
           {selectedCase ? (
             <>
-              <div className="border-b border-slate-800 pb-4 flex items-center justify-between">
+              <div className="border-b border-[#e5e3dc] pb-4 flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-semibold text-indigo-400">{selectedCase.id}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-indigo-950/50 border border-indigo-800/50 text-indigo-300">
+                    <span className="font-mono text-xs font-semibold text-[#1c1917]">
+                      {selectedCase.id}
+                    </span>
+                    <span className="stamp-badge font-mono text-[10px] uppercase">
                       {selectedCase.category}
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-white mt-1">{selectedCase.question}</h3>
+                  <h3 className="font-editorial text-base font-semibold text-[#1c1917] mt-1">
+                    {selectedCase.question}
+                  </h3>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block">CRAG Grade</span>
-                  <span className="text-xs font-mono font-bold text-emerald-400 uppercase">
-                    {selectedCase.crag_grade}
+                  <span className="text-[10px] text-[#78716c] block font-mono uppercase">CRAG Grade</span>
+                  <span className="text-xs font-mono font-bold text-[#166534] uppercase">
+                    [{selectedCase.crag_grade}]
                   </span>
                 </div>
               </div>
 
               {/* Search Query & Disambiguation */}
               {selectedCase.search_query !== selectedCase.question && (
-                <div className="p-3 rounded-xl bg-slate-800/50 border border-slate-700/60 text-xs">
-                  <span className="text-[10px] uppercase font-bold text-amber-400 block mb-1">
-                    CRAG Query Disambiguation (Rewritten)
+                <div className="p-3 rounded-lg bg-[#faf9f5] border border-[#e5e3dc] text-xs">
+                  <span className="text-[10px] uppercase font-bold text-[#b45309] block mb-1 font-mono">
+                    Corrective Query Rewrite
                   </span>
-                  <p className="font-mono text-slate-300">{selectedCase.search_query}</p>
+                  <p className="font-mono text-[#44403c]">{selectedCase.search_query}</p>
                 </div>
               )}
 
               {/* Actual Generated Answer */}
               <div className="space-y-1.5">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                  Generated Answer
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#78716c]">
+                  Generated Synthesis
                 </span>
-                <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/80 text-xs text-slate-200 leading-relaxed font-sans whitespace-pre-wrap">
+                <div className="p-4 rounded-lg bg-[#faf9f5] border border-[#e5e3dc] text-xs text-[#292524] leading-relaxed font-sans whitespace-pre-wrap">
                   {selectedCase.actual_answer}
                 </div>
               </div>
 
               {/* Ground Truth Reference */}
               <div className="space-y-1.5">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#78716c]">
                   Ground Truth Reference
                 </span>
-                <div className="p-4 rounded-xl bg-indigo-950/20 border border-indigo-900/30 text-xs text-indigo-200 leading-relaxed">
+                <div className="p-4 rounded-lg bg-white border border-[#e5e3dc] text-xs text-[#57534e] leading-relaxed">
                   {selectedCase.ground_truth}
                 </div>
               </div>
 
               {/* LLM-as-a-Judge Evaluation Breakdown */}
               <div className="space-y-2">
-                <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-                  Judge Score & Reasoning
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#78716c]">
+                  Evaluation Diagnostics
                 </span>
                 <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-800">
-                    <span className="text-slate-400 text-[10px] block">Faithfulness Score</span>
-                    <span className="text-sm font-mono font-bold text-emerald-400">
+                  <div className="p-3 rounded-lg bg-[#faf9f5] border border-[#e5e3dc]">
+                    <span className="text-[#78716c] text-[10px] font-mono block">Faithfulness Score</span>
+                    <span className="text-sm font-mono font-bold text-[#166534] num-tabular">
                       {(selectedCase.scores.faithfulness * 100).toFixed(0)}%
                     </span>
-                    <p className="text-[11px] text-slate-400 mt-1 italic">
-                      {selectedCase.reasoning?.faithfulness || 'Claim evaluation verified against context.'}
+                    <p className="text-[11px] text-[#57534e] mt-1 italic">
+                      {selectedCase.reasoning?.faithfulness || 'Verified against context chunks.'}
                     </p>
                   </div>
-                  <div className="p-3 rounded-xl bg-slate-800/40 border border-slate-800">
-                    <span className="text-slate-400 text-[10px] block">Answer Relevance</span>
-                    <span className="text-sm font-mono font-bold text-indigo-400">
+                  <div className="p-3 rounded-lg bg-[#faf9f5] border border-[#e5e3dc]">
+                    <span className="text-[#78716c] text-[10px] font-mono block">Answer Relevance</span>
+                    <span className="text-sm font-mono font-bold text-[#1c1917] num-tabular">
                       {(selectedCase.scores.answer_relevance * 100).toFixed(0)}%
                     </span>
-                    <p className="text-[11px] text-slate-400 mt-1 italic">
+                    <p className="text-[11px] text-[#57534e] mt-1 italic">
                       {selectedCase.reasoning?.answer_relevance || 'Response completeness scored against gold standard.'}
                     </p>
                   </div>
@@ -403,7 +415,7 @@ export const Evals: React.FC = () => {
               </div>
             </>
           ) : (
-            <div className="flex h-64 items-center justify-center text-xs text-slate-400">
+            <div className="flex h-64 items-center justify-center text-xs text-[#a8a29e]">
               Select a benchmark sample to inspect judge scores and reasoning.
             </div>
           )}

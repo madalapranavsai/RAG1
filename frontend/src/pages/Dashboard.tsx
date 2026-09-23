@@ -4,7 +4,6 @@ import {
   FileText,
   MessageSquare,
   Layers,
-  Sparkles,
   ArrowUpRight,
   ShieldCheck,
   Zap,
@@ -40,112 +39,113 @@ export const Dashboard: React.FC = () => {
   const totalTokens = usage?.metrics.total_tokens_used ?? 0;
 
   return (
-    <div className="p-6 md:p-8 space-y-8 max-w-7xl mx-auto">
-      {/* Hero Welcome Banner */}
-      <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-slate-900/60 border border-indigo-500/20 shadow-2xl">
-        <div className="absolute right-0 top-0 -mt-10 -mr-10 h-72 w-72 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="p-6 md:p-10 space-y-8 max-w-6xl mx-auto">
+      {/* Executive Masthead Banner */}
+      <div className="paper-sheet p-6 sm:p-8 border border-[#e5e3dc] bg-white rounded-xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-semibold text-indigo-300">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Multi-Tenant RAG + A2UI Active</span>
+            <div className="flex items-center gap-2">
+              <span className="stamp-badge font-mono text-[10px]">
+                TENANT // {user?.workspace_name || 'DEFAULT'}
+              </span>
+              <span className="text-[11px] font-mono text-[#78716c]">
+                SECURE POSTGRESQL + PGVECTOR
+              </span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              Welcome, {user?.email.split('@')[0]}
+            <h1 className="font-editorial text-2xl sm:text-3xl font-semibold text-[#1c1917] tracking-tight">
+              Executive Briefing & Intelligence Dossier
             </h1>
-            <p className="text-sm text-slate-300 max-w-xl">
-              Workspace: <strong className="text-white">{user?.workspace_name}</strong>. Grounded
-              retrieval across all uploaded workspace documents with instant Generative UI widgets.
+            <p className="text-xs text-[#57534e] max-w-xl leading-relaxed">
+              Curated workspace repository for <strong>{user?.email}</strong>. Grounded
+              semantic retrieval with Corrective RAG (CRAG) and generative analytical figures.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
               to="/chat"
-              className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 text-xs font-semibold shadow-lg shadow-indigo-600/30 transition-all"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#1c1917] hover:bg-[#292524] text-white px-4 py-2.5 text-xs font-semibold shadow-sm transition-all interactive-press"
             >
-              <MessageSquare className="w-4 h-4" />
-              <span>Launch Chat</span>
+              <MessageSquare className="w-4 h-4 text-white" />
+              <span>Launch Inquiry</span>
             </Link>
             <Link
               to="/documents"
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2.5 text-xs font-semibold transition-all"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#faf9f5] hover:bg-[#f4f3ee] text-[#1c1917] border border-[#d5d2c7] px-4 py-2.5 text-xs font-semibold transition-all interactive-press"
             >
-              <FileText className="w-4 h-4" />
-              <span>Upload Docs</span>
+              <FileText className="w-4 h-4 text-[#78716c]" />
+              <span>Register Documents</span>
             </Link>
           </div>
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Hairline Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="glass-card rounded-2xl p-5 border border-slate-800">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
-            <span className="text-xs font-medium">Indexed Documents</span>
-            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
-              <FileText className="w-4 h-4" />
-            </div>
+        <div className="paper-sheet rounded-xl p-5 border border-[#e5e3dc] bg-white space-y-2">
+          <div className="flex items-center justify-between text-[#78716c]">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider">
+              Index // Documents
+            </span>
+            <FileText className="w-4 h-4 text-[#78716c]" />
           </div>
-          <div className="text-2xl font-bold text-white">{totalDocs}</div>
-          <p className="text-[11px] text-slate-400 mt-1">PDF, TXT, MD in isolated vault</p>
+          <div className="text-2xl font-bold text-[#1c1917] num-tabular">{totalDocs}</div>
+          <p className="text-[11px] text-[#78716c]">Tenant-isolated repository</p>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 border border-slate-800">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
-            <span className="text-xs font-medium">Vector Chunks</span>
-            <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400">
-              <Layers className="w-4 h-4" />
-            </div>
+        <div className="paper-sheet rounded-xl p-5 border border-[#e5e3dc] bg-white space-y-2">
+          <div className="flex items-center justify-between text-[#78716c]">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider">
+              Index // Chunks
+            </span>
+            <Layers className="w-4 h-4 text-[#78716c]" />
           </div>
-          <div className="text-2xl font-bold text-white">{totalChunks}</div>
-          <p className="text-[11px] text-slate-400 mt-1">384-dim FastEmbed in pgvector</p>
+          <div className="text-2xl font-bold text-[#1c1917] num-tabular">{totalChunks}</div>
+          <p className="text-[11px] text-[#78716c]">384-dim FastEmbed in pgvector</p>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 border border-slate-800">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
-            <span className="text-xs font-medium">Gemini Tokens</span>
-            <div className="p-2 rounded-xl bg-sky-500/10 text-sky-400">
-              <Zap className="w-4 h-4" />
-            </div>
+        <div className="paper-sheet rounded-xl p-5 border border-[#e5e3dc] bg-white space-y-2">
+          <div className="flex items-center justify-between text-[#78716c]">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider">
+              Usage // Gemini Tokens
+            </span>
+            <Zap className="w-4 h-4 text-[#78716c]" />
           </div>
-          <div className="text-2xl font-bold text-white">{totalTokens.toLocaleString()}</div>
-          <p className="text-[11px] text-slate-400 mt-1">Prompt & completion consumption</p>
+          <div className="text-2xl font-bold text-[#1c1917] num-tabular">{totalTokens.toLocaleString()}</div>
+          <p className="text-[11px] text-[#78716c]">Synthesis prompt & response</p>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 border border-slate-800">
-          <div className="flex items-center justify-between text-slate-400 mb-3">
-            <span className="text-xs font-medium">Engine Status</span>
-            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
+        <div className="paper-sheet rounded-xl p-5 border border-[#e5e3dc] bg-white space-y-2">
+          <div className="flex items-center justify-between text-[#78716c]">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider">
+              Status // RAG Engine
+            </span>
+            <ShieldCheck className="w-4 h-4 text-[#166534]" />
           </div>
-          <div className="text-2xl font-bold text-emerald-400 flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="text-sm font-semibold text-[#166534] flex items-center gap-1.5 pt-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-600" />
             100% Operational
           </div>
-          <p className="text-[11px] text-slate-400 mt-1">Gemini 2.5 Flash + Supabase</p>
+          <p className="text-[11px] text-[#78716c]">Gemini 2.5 Flash + Supabase</p>
         </div>
       </div>
 
-      {/* A2UI Live Interactive Demonstration Feature */}
-      <div className="glass-card rounded-2xl p-6 border border-slate-800">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+      {/* System Architecture Blueprint */}
+      <div className="paper-sheet rounded-xl p-6 border border-[#e5e3dc] bg-white space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-[#e5e3dc]">
           <div>
-            <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-indigo-400" />
-              Interactive A2UI Generative Capabilities
+            <h3 className="font-editorial text-base font-semibold text-[#1c1917] flex items-center gap-2">
+              System Blueprint & Retrieval Pipeline
             </h3>
-            <p className="text-xs text-slate-400">
-              DocuMind dynamically streams metric cards, Chart.js visuals, data tables, and Mermaid
-              flows directly in chat answers.
+            <p className="text-xs text-[#57534e] mt-0.5">
+              LangGraph orchestration pipeline with corrective grading and generative analytical widgets.
             </p>
           </div>
           <Link
             to="/chat"
-            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+            className="text-xs font-semibold text-[#1c1917] hover:underline flex items-center gap-1"
           >
-            Try in Chat <ArrowUpRight className="w-3.5 h-3.5" />
+            Open in Dossier <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
@@ -159,66 +159,79 @@ export const Dashboard: React.FC = () => {
         />
       </div>
 
-      {/* Recent Documents Table */}
-      <div className="glass-card rounded-2xl border border-slate-800 overflow-hidden">
-        <div className="flex items-center justify-between p-5 border-b border-slate-800">
+      {/* Recent Documents Register */}
+      <div className="paper-sheet rounded-xl border border-[#e5e3dc] bg-white overflow-hidden">
+        <div className="flex items-center justify-between p-5 border-b border-[#e5e3dc] bg-[#faf9f5]">
           <div>
-            <h3 className="text-sm font-bold text-white">Recent Workspace Documents</h3>
-            <p className="text-xs text-slate-400">Files available for semantic retrieval</p>
+            <h3 className="font-editorial text-base font-semibold text-[#1c1917]">Archival Register</h3>
+            <p className="text-xs text-[#78716c]">Recently indexed workspace documents</p>
           </div>
           <Link
             to="/documents"
-            className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1"
+            className="text-xs font-semibold text-[#1c1917] hover:underline flex items-center gap-1"
           >
-            Manage All <ArrowUpRight className="w-3.5 h-3.5" />
+            View Full Register <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         {documents.length === 0 ? (
           <div className="p-8 text-center">
-            <FileText className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-            <p className="text-xs font-medium text-slate-400">No documents uploaded yet.</p>
+            <FileText className="w-8 h-8 text-[#a8a29e] mx-auto mb-2" />
+            <p className="text-xs font-medium text-[#78716c]">No documents registered yet.</p>
             <Link
               to="/documents"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-indigo-500"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#1c1917] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[#292524]"
             >
-              Upload First Document
+              Register First Document
             </Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/60 text-slate-400 font-medium">
+                <tr className="border-b border-[#e5e3dc] bg-white text-[#78716c] font-medium font-mono text-[10px] uppercase tracking-wider">
+                  <th className="px-5 py-3">Folio</th>
                   <th className="px-5 py-3">Document Title</th>
                   <th className="px-5 py-3">Type</th>
                   <th className="px-5 py-3">Chunks</th>
                   <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3">Uploaded</th>
+                  <th className="px-5 py-3">Date Registered</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800 text-slate-300">
-                {documents.slice(0, 5).map((doc) => (
-                  <tr key={doc.id} className="hover:bg-slate-900/40 transition-colors">
-                    <td className="px-5 py-3 font-medium text-white flex items-center gap-2">
-                      <FileText className="w-3.5 h-3.5 text-indigo-400" />
-                      <span>{doc.title}</span>
-                    </td>
-                    <td className="px-5 py-3 uppercase text-[11px] font-mono text-slate-400">
-                      {doc.file_type}
-                    </td>
-                    <td className="px-5 py-3 font-mono">{doc.total_chunks}</td>
-                    <td className="px-5 py-3">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                        {doc.status}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 text-slate-500 text-[11px]">
-                      {new Date(doc.created_at).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
+              <tbody className="divide-y divide-[#e5e3dc] text-[#292524]">
+                {documents.slice(0, 5).map((doc, idx) => {
+                  const folioNumber = `№ ${String(idx + 1).padStart(3, '0')}`;
+                  const fileType = doc?.file_type || (doc?.title ? doc.title.split('.').pop() : '') || 'file';
+
+                  return (
+                    <tr key={doc.id} className="hover:bg-[#faf9f5] transition-colors">
+                      <td className="px-5 py-3 font-mono text-[11px] text-[#a8a29e]">
+                        {folioNumber}
+                      </td>
+                      <td className="px-5 py-3 font-medium text-[#1c1917] flex items-center gap-2">
+                        <FileText className="w-3.5 h-3.5 text-[#78716c]" />
+                        <span>{doc.title}</span>
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className="stamp-badge font-mono text-[10px] uppercase">
+                          [{fileType}]
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 font-mono num-tabular text-[#57534e]">
+                        {doc.total_chunks}
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                          {doc.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-[#78716c] text-[11px] font-mono">
+                        {new Date(doc.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
